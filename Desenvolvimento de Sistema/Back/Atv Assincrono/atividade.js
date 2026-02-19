@@ -5,15 +5,15 @@ const time = 3500
 
 function fazerBolo(time){
     return new Promise(
-        (feito, naoFeito) => {
+        (resolve, reject) => {
             setTimeout(() => {
             const tempoAssar = 3500
             const time = 3500
 
             if(time === tempoAssar ){ //3 pois está com 3,5 segundos
-            feito(`Esperou ${time}ms`);
+            resolve(`Esperou ${time}ms`);
             }else{
-            naoFeito('Fail')
+            reject('Fail')
             }
            },
         time);
@@ -32,13 +32,13 @@ fazerBolo(3500)
 
 function numeros(algum){
     return new Promise(
-        (maior, menor) => {
+        (resolve, reject) => {
             setTimeout(() => {
                 const algum = 3
                 if(algum > 5){ 
-                maior(`${algum}`);
+                resolve(`${algum}`);
                 }else{
-                menor('Fail')
+                reject('Fail')
                 }
             },
             algum);
