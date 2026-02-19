@@ -1,17 +1,23 @@
 //Atividade 1
 
+const tempoAssar = 3500
+const time = 3500
+
 function fazerBolo(time){
     return new Promise(
         (feito, naoFeito) => {
             setTimeout(() => {
-                if(time > 3 ){ //3 pois está com 3,5 segundos
-                feito(`Esperou ${time}ms`);
-                }else{
-                naoFeito('Fail')
-                }
-            },
-            time);
-        });
+            const tempoAssar = 3500
+            const time = 3500
+
+            if(time === tempoAssar ){ //3 pois está com 3,5 segundos
+            feito(`Esperou ${time}ms`);
+            }else{
+            naoFeito('Fail')
+            }
+           },
+        time);
+    });
 }
 
 fazerBolo(3500)
@@ -28,6 +34,7 @@ function numeros(algum){
     return new Promise(
         (maior, menor) => {
             setTimeout(() => {
+                const algum = 3
                 if(algum > 5){ 
                 maior(`${algum}`);
                 }else{
