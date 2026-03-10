@@ -17,7 +17,7 @@ export default function AnimalForm({ onAnimalAdded }) {
     }
 
     // BUG 10: Envia 'idade' como string. O backend espera um número (mas possui um bug de verificação rigorosa).
-    await postAnimal({ name, species, age, price: Number(price) });
+    await postAnimal({ name, email, age, price: Number(price) });
 
     setName("");
     setSpecies("");
@@ -36,9 +36,9 @@ export default function AnimalForm({ onAnimalAdded }) {
         required
       />
       <input
-        placeholder="Species"
-        value={species}
-        onChange={(e) => setSpecies(e.target.value)}
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         required
       />
       <input

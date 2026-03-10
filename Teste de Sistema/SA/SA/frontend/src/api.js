@@ -5,11 +5,11 @@ export const fetchAnimals = async () => {
   return response.json();
 };
 
-export const postAnimal = async (animal) => {
+export const postLogin = async (login) => {
   const response = await fetch(`${API_URL}/animals`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(animal),
+    body: JSON.stringify(login),
   });
   return response.json();
 };
