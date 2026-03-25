@@ -14,16 +14,7 @@ app.get('/', (req, res) => {
   res.send("Hello world")
 })
 
-interface DadosCadastro {
-  email: string;
-  nome?: string;
-  senha: string;
-}
 
-interface DadosLogin {
-  email: string;
-  senha: string;
-}
 
 
 // Endpoints usuario
@@ -45,7 +36,7 @@ app.get('/usuarios/:id', async (req, res) => {
 
 app.post("/cadastro", async (req, res) => {
   console.log(req.body)
-  const dadosUsuario = req.body as DadosCadastro
+  const dadosUsuario = req.body as Usuario
   const hash = await createHash(dadosUsuario.senha);
   const usuarioCriado = await prisma.usuario.create({
     data: {
@@ -58,7 +49,7 @@ app.post("/cadastro", async (req, res) => {
 })
 
 app.post("/login", async (req, res) => {
-  const { email, senha } = req.body as DadosLogin;
+  const { email, senha } = req.body as Usuario;
 
   const usuarioLogin = await prisma.usuario.findUnique({
     where: { email }
