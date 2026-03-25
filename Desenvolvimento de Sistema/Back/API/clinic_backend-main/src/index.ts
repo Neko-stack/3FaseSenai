@@ -1,6 +1,9 @@
 import express from 'express';
 import { prisma } from './prisma/prisma';
-import type { Exame, Usuario } from './prisma/generated/prisma/client';
+import type { Exame, Usuario, TypeToken} from './prisma/generated/prisma/client';
+import { createHash } from './utils/createHash';
+import bcrypt from "bcrypt"
+
 
 const app = express();
 app.use(express.json())
@@ -11,130 +14,159 @@ app.get('/', (req, res) => {
   res.send("Hello world")
 })
 
-// Endpoints usuario
-//app.get('/usuarios', async (_, res) => {
-///  const usuarios = await prisma.usuario.findMany();
-//  res.json(usuarios);
-//})
+interface DadosCadastro {
+  email: string;
+  nome?: string;
+  senha: string;
+}
 
-app.get('/usuarios/:id', async (req, res)=> {
-  const idUsuario = Number (req.params.id)
+interface DadosLogin {
+  email: string;
+  senha: string;
+}
+
+
+// Endpoints usuario
+app.get('/usuarios', async (_, res) => {
+  const usuarios = await prisma.usuario.findMany();
+  return res.json(usuarios);
+})
+
+app.get('/usuarios/:id', async (req, res) => {
+  const idUsuario = Number(req.params.id)
   const usuario = await prisma.usuario.findUnique({
     where: {
       id: idUsuario
     }
-    
-  }) })
-
-  app.delete('/usuarios/:id', async (req, res)=> {
-  const idUsuario = Number (req.params.id)
-  const usuarioDeletado = await prisma.usuario.findUnique({
-    where: {
-      id: idUsuario
-    }
-    
   })
 
+  return res.status(200).json(usuario);
 })
 
-app.post("/usuarios", async (req, res) => {
+app.post("/cadastro", async (req, res) => {
   console.log(req.body)
-  const dadosUsuario = req.body as Usuario
+  const dadosUsuario = req.body as DadosCadastro
+  const hash = await createHash(dadosUsuario.senha);
   const usuarioCriado = await prisma.usuario.create({
     data: {
       email: dadosUsuario.email,
-      nome: dadosUsuario.nome || null
+      nome: dadosUsuario.nome || null,
+      senha: hash
     }
   })
   return res.status(201).json(usuarioCriado)
 })
 
-app.put("/usuarios/:id", async(req, res)=>{
-    const idUsuario = Number (req.params.id)
-      const dadosParaAtualizar = req.body as Omit<Usuario, 'id'>
+app.post("/login", async (req, res) => {
+  const { email, senha } = req.body as DadosLogin;
 
-    await prisma.usuario.update({
-      data:{
-        ...dadosParaAtualizar
-      },
-      where: {
-        id: idUsuario
-      }
-    })
-
-    const usuarioAtualizado = await prisma.usuario.findUnique({
-      where: {
-        id: idUsuario
-      }
-    })
+  const usuarioLogin = await prisma.usuario.findUnique({
+    where: { email }
+  });
+  if (!usuarioLogin) {
+    return res.status(401).json({ error: "E-mail ou senha incorretos." });
+  }
+  const senhaCorreta = await bcrypt.compare(senha, usuarioLogin.senha);
+  if (!senhaCorreta) {
+    return res.status(401).json({ error: "E-mail ou senha incorretos." });
+  }
+  return res.status(200).json({ 
+  });
 
 })
-//sever ok
 
-app.listen(port, () => {
-  console.log("Servidor ta de pé :p")
+app.put("/usuarios/:id", async (req, res) => {
+  const idUsuario = Number(req.params.id)
+  const dadosParaAtualizar = req.body as Omit<Usuario, 'id'>
+
+  const usuarioAtualizado = await prisma.usuario.update({
+    data: {
+      ...dadosParaAtualizar
+    },
+    where: {
+      id: idUsuario
+    }
+  })
+
+  return res.status(200).json(usuarioAtualizado);
 })
 
+app.delete('/usuarios/:id', async (req, res) => {
+  const idUsuario = Number(req.params.id)
+  const usuarioDeletado = await prisma.usuario.delete({
+    where: {
+      id: idUsuario
+    }
+  })
 
-// Exames
+  return res.status(200).json({
+    mensagem: "Usuário deletado com sucesso!",
+    data: usuarioDeletado
+  });
+})
 
-app.get('/exames/:id', async (req, res)=> {
-  const idExame = Number (req.params.id)
+//Exames
+app.get('/exames', async (_, res) => {
+  const exames = await prisma.exame.findMany();
+  return res.json(exames);
+})
+
+app.get('/exames/:id', async (req, res) => {
+  const idExame = Number(req.params.id)
   const exame = await prisma.exame.findUnique({
     where: {
       id: idExame
     }
-    
   })
-    return res.status(201).json(exame)  
 
-})
-
-  app.delete('/exames/:id', async (req, res)=> {
-  const idExame = Number (req.params.id)
-  const exameDeletado = await prisma.exame.findUnique({
-    where: {
-      id: idExame
-    }
-    
-  })
-      return console.log(`o exame ${idExame} foi deletado`)
-      
+  return res.status(200).json(exame);
 })
 
 app.post("/exames", async (req, res) => {
-  console.log(req.body)
   const dadosExame = req.body as Exame
-  const  ExameCriado = await prisma.exame.create({
+  const exameCriado = await prisma.exame.create({
     data: {
       tipo_exame: dadosExame.tipo_exame,
-      valor: dadosExame.valor ,
+      valor: dadosExame.valor,
       descricao: dadosExame.descricao,
-      resultado: dadosExame.resultado,
-      data_exame: dadosExame.data_exame
+      data_exame: new Date(dadosExame.data_exame),
+      resultado: dadosExame.resultado
     }
   })
-  return res.status(201).json(ExameCriado)
+  return res.status(201).json(exameCriado)
 })
 
-app.put("/usuarios/:id", async(req, res)=>{
-    const idExame = Number (req.params.id)
-      const dadosParaAtualizar = req.body as Omit<Exame, 'id'>
+app.put("/exames/:id", async (req, res) => {
+  const idExame = Number(req.params.id)
+  const dadosParaAtualizar = req.body as Omit<Exame, 'id'>
 
-    await prisma.usuario.update({
-      data:{
-        ...dadosParaAtualizar
-      },
-      where: {
-        id: idExame
-      }
-    })
+  const exameAtualizado = await prisma.exame.update({
+    data: {
+      ...dadosParaAtualizar,
+      data_exame: new Date(dadosParaAtualizar.data_exame)
+    },
+    where: {
+      id: idExame
+    }
+  })
 
-    const exameAtualizado = await prisma.exame.findUnique({
-      where: {
-        id: idExame
-      }
-    })
-      return console.log(`o exame ${idExame} foi atualizado`)
+  return res.status(200).json(exameAtualizado);
 })
 
+app.delete('/exames/:id', async (req, res) => {
+  const idExame = Number(req.params.id)
+  const exameDeletado = await prisma.exame.delete({
+    where: {
+      id: idExame
+    }
+  })
+
+  return res.status(200).json({
+    mensagem: "Exame deletado com sucesso!",
+    data: exameDeletado
+  });
+})
+
+app.listen(port, () => {
+  console.log("Servidor ta de pé :p")
+})
