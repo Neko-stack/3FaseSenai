@@ -49,15 +49,18 @@ app.post("/cadastro", async (req, res) => {
 })
 
 app.post("/login", async (req, res) => {
-  const { email, senha } = req.body as Usuario;
+  const dadosUsuario = req.body as Partial<Usuario>;
 
   const usuarioLogin = await prisma.usuario.findUnique({
-    where: { email }
+    where: { 
+      email: dadosUsuario.email || '',
+    
+    }
   });
-  if (!usuarioLogin) {
+  if (usuarioLogin) {
     return res.status(401).json({ error: "E-mail ou senha incorretos." });
   }
-  const senhaCorreta = await bcrypt.compare(senha, usuarioLogin.senha);
+  const senhaCorreta = await bcrypt.compare(dadosUsuario.senha || '', usuarioLogin);
   if (!senhaCorreta) {
     return res.status(401).json({ error: "E-mail ou senha incorretos." });
   }

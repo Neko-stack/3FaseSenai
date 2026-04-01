@@ -1,0 +1,106 @@
+{
+    "posts": [
+        {
+            "id": "1",
+            "image": "https://placehold.co/300x200",
+            "title": "a title",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            "views": 100
+        },
+        {
+            "id": "2",
+            "image": "https://placehold.co/300x200",
+            "title": "another title",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            "views": 200
+        },
+        {
+            "id": "3",
+            "image": "https://placehold.co/300x200",
+            "title": "a title",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            "views": 50
+        },
+        {
+            "id": "4",
+            "image": "https://placehold.co/300x200",
+            "title": "a title",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            "views": 70
+        },
+        {
+            "id": "5",
+            "image": "https://placehold.co/300x200",
+            "title": "a title",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            "views": 270
+        }
+    ],
+    "comments": [
+        {
+            "id": "1",
+            "text": "a comment about post 1",
+            "postId": "1"
+        },
+        {
+            "id": "2",
+            "text": "another comment about post 1",
+            "postId": "1"
+        }
+    ],
+    "profile": {
+        "name": "typicode"
+    },
+    "users": [
+        {
+            "id": "1",
+            "name": "João",
+            "idade": "30"
+        },
+        {
+            "id": "2",
+            "name": "Maria",
+            "idade": "27"
+        }
+    ],
+
+     "autores": [
+   {
+     "id": 1,
+     "nome": "Machado de Assis",
+     "foto": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcu3eI7AwJgF7bthLuxZwD5QzNDBRMCEQpif2qZQm_o90mt8gmNcOesSw3SXxwr-9Js8l5fechqgPxe82aovgbYYKPGgkOl1BkuS3ZLXRoLA&s=10",
+     "descricao": "Escritor brasileiro, considerado um dos maiores nomes da literatura nacional.",
+     "biografia": "Machado de Assis foi romancista, cronista, dramaturgo e poeta...",
+     "especialidade": "Literatura Brasileira",
+     "cidade": "Rio de Janeiro"
+   },
+   {
+    "id": 2,
+    "nome": "Clarice Lispector",
+    "foto": "https://s2.static.brasilescola.uol.com.br/be/2022/09/clarice-lispector.jpg",
+    "descricao": "Escritora e jornalista, uma das vozes mais importantes da literatura moderna em língua portuguesa.",
+    "biografia": "Nascida na Ucrânia e naturalizada brasileira, Clarice revolucionou a literatura com seu estilo introspectivo e o uso do fluxo de consciência.",
+    "especialidade": "Romance Psicológico",
+    "cidade": "Recife / Rio de Janeiro"
+   },
+   {
+    "id": 3,
+    "nome": "Guimarães Rosa",
+    "foto": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThw18EuBIqUmJDDW5l4Tr5C1OaG4LQKsuNC52T1Bj1OW8Ttwd2jhmrdkj4B6joyKOhhyC_GhGq7oXEQoXLbf3A6XbiQZgKa44S7slefDSi&s=10",
+    "descricao": "Diplomata e escritor brasileiro, autor da obra-prima 'Grande Sertão: Veredas'.",
+    "biografia": "Médico de formação, Guimarães Rosa recriou a linguagem do sertão mineiro, elevando regionalismos a questões universais e filosóficas.",
+    "especialidade": "Regionalismo Modernista",
+    "cidade": "Cordisburgo"
+   },
+   {
+    "id": 4,
+    "nome": "Conceição Evaristo",
+    "foto": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj5KPLIh7Wi8SEFUbymPR5BaZQhLEbXD8uoQkZ7NF4acFszKWf4VuSUdJ6-Z2y9FsTs7oCweIGfw37PI8RCruWH6kOUp_NLq4RqtSKG2cmiZ7nfo9BzYl9dyEbdgv24mGQEh_wpc_OW3_xgKBz7uhB3frRmRUNWgwaU_IZW5XDvuDgn0MH3IIkYjkCbeQ/s768/Concei%C3%A7%C3%A3o%20Evaristo%20-%20foto%20Lucas%20Seixas.Folhapress%205.jpg",
+    "descricao": "Expoente da literatura contemporânea brasileira e criadora do conceito de 'escrevivência'.",
+    "biografia": "Doutora em Literatura, sua obra explora as vivências das mulheres negras no Brasil, mesclando memórias pessoais e coletivas.",
+    "especialidade": "Literatura Afro-brasileira",
+    "cidade": "Belo Horizonte"
+   }
+ ]
+}
+
