@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { data, useParams } from "react-router";
+import { useParams } from "react-router";
 
 
 const Detail = () => {
-    const {id} = useParams
+    const {id} = useParams()
     const [post,setPost] = useState(null)
 
     useEffect(() =>{
@@ -18,9 +18,9 @@ const Detail = () => {
     return(
         <div className="p-4">
             <img src={post.image} alt={post.title} />
-            <h1 className="text-x1 font-bold"></h1>
-            <h3>{post.views}</h3>
-            <p>{post.description}</p>
+            <h1 className="text-x1 font-bold">{post.nome}</h1>
+            <h3>{post.especialidade}</h3>
+            <p>{post.descricao}</p>
         </div>
     )
 }
