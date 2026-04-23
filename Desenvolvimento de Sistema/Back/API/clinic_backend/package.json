@@ -18,7 +18,7 @@
   "bugs": {
     "url": "https://github.com/Neko-stack/3FaseSenai/issues"
   },
-  "homepage": "https://github.com/Neko-stack/clinic_backend#readme",
+  "homepage": "https://github.com/Neko-stack/3FaseSenai#readme",
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
