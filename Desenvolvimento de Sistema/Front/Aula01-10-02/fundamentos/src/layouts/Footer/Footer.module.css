@@ -1,0 +1,13 @@
+.div{
+    background-color: green;
+  /*  position: absolute;
+    bottom:0%;
+    width: 100%;*/
+    color: #FFF;
+    text-align: center;
+
+    .title3{
+        font-size: 20px;
+    }
+ }
+
