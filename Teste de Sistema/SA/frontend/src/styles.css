@@ -1,0 +1,409 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f5f6f8;
+  color: #15171c;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+main {
+  min-height: 100vh;
+}
+
+.hero {
+  min-height: 360px;
+  display: flex;
+  align-items: flex-end;
+  padding: 48px clamp(20px, 5vw, 72px);
+  background:
+    linear-gradient(90deg, rgba(10, 12, 16, 0.9), rgba(10, 12, 16, 0.45)),
+    url('https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?auto=format&fit=crop&w=1800&q=80')
+      center/cover;
+  color: #fff;
+}
+
+.hero__content {
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #ffce45;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 720px;
+  margin: 0;
+  font-size: clamp(2.2rem, 8vw, 4.8rem);
+  line-height: 0.98;
+}
+
+.hero p:not(.eyebrow) {
+  max-width: 610px;
+  margin: 18px 0 0;
+  color: #eef0f3;
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.hero__stats span {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 26px clamp(20px, 5vw, 72px);
+  background: #fff;
+  border-bottom: 1px solid #e2e6ec;
+}
+
+.search {
+  width: min(100%, 360px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d7dce4;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: #fff;
+}
+
+.search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  padding: 13px 0;
+  color: #15171c;
+}
+
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.category-list button {
+  border: 1px solid #d7dce4;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #fff;
+  color: #323844;
+  font-weight: 700;
+}
+
+.category-list button.active {
+  border-color: #111317;
+  background: #111317;
+  color: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 28px clamp(20px, 5vw, 72px) 48px;
+}
+
+.grid--featured {
+  grid-template-columns: minmax(280px, 760px);
+  justify-content: center;
+}
+
+.grid--featured .moto-card img {
+  aspect-ratio: 16 / 9;
+}
+
+.grid--featured .moto-card__body {
+  padding: 24px;
+}
+
+.grid--featured .moto-card h2 {
+  font-size: 1.65rem;
+}
+
+.moto-card {
+  overflow: hidden;
+  border: 1px solid #e0e4ea;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(21, 23, 28, 0.08);
+}
+
+.moto-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.moto-card__body {
+  padding: 18px;
+}
+
+.moto-card__title {
+  min-height: 70px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.moto-card__title p {
+  margin: 0 0 4px;
+  color: #6a7280;
+  font-size: 0.83rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.moto-card h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.tag {
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: #ffce45;
+  color: #201800;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+
+dt {
+  color: #69717f;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 2px 0 0;
+  font-weight: 800;
+}
+
+strong {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 1.35rem;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-button,
+.buy-button,
+.secondary-button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.icon-button {
+  width: 48px;
+  display: grid;
+  place-items: center;
+  background: #eef1f5;
+  color: #d12732;
+}
+
+.buy-button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #d12732;
+  color: #fff;
+}
+
+.buy-button:disabled {
+  background: #22262d;
+}
+
+.secondary-button {
+  padding: 0 18px;
+  background: #eef1f5;
+  color: #22262d;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(13, 16, 22, 0.62);
+}
+
+.modal {
+  width: min(100%, 420px);
+  border-radius: 8px;
+  padding: 24px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+}
+
+.modal h2 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.modal p {
+  margin: 10px 0 18px;
+  color: #596170;
+  font-weight: 800;
+}
+
+.modal form {
+  display: grid;
+  gap: 14px;
+}
+
+.modal label {
+  display: grid;
+  gap: 8px;
+  color: #323844;
+  font-weight: 800;
+}
+
+.modal input,
+.modal select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d7dce4;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: #15171c;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.modal__actions .buy-button {
+  flex: 0 1 auto;
+  padding: 0 18px;
+}
+
+.success-modal {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+}
+
+.success-modal .buy-button {
+  flex: 0 1 auto;
+  padding: 0 22px;
+}
+
+.empty {
+  margin: 0;
+  padding: 0 clamp(20px, 5vw, 72px) 48px;
+  color: #596170;
+  font-weight: 700;
+}
+
+.sr-only {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    min-height: 430px;
+    padding-top: 96px;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search {
+    width: 100%;
+  }
+
+  .modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal__actions .buy-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .modal form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-weight: bold;
+}
+
+.modal form input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+header span {
+  font-size: 14px;
+  color: #666;
+}
+}
