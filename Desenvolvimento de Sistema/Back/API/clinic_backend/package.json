@@ -9,19 +9,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Neko-stack/3FaseSenai.git"
+    "url": "git+https://github.com/Alekmz/clinic_backend.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/Neko-stack/3FaseSenai/issues"
+    "url": "https://github.com/Alekmz/clinic_backend/issues"
   },
-  "homepage": "https://github.com/Neko-stack/3FaseSenai#readme",
+  "homepage": "https://github.com/Alekmz/clinic_backend#readme",
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
-    "@prisma/client": "^7.4.2",
+    "@prisma/client": "^7.8.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -37,7 +37,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.4",
     "@types/pg": "^8.18.0",
-    "prisma": "^7.4.2",
+    "prisma": "^7.8.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
