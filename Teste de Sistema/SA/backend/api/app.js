@@ -1,6 +1,8 @@
 import express from "express";
+import { pathToFileURL } from "url";
+import { pool as db } from "./db/db.js";
 
-const app = express();
+export const app = express();
 app.use(express.json());
 
 
@@ -47,5 +49,7 @@ app.get('/api/motos', async (req, res) => {
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const PORT = 3000;
+  app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));
+}
