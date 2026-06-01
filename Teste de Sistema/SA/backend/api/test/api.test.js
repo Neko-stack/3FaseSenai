@@ -62,6 +62,23 @@ describe('API de motos', () => {
     executeMock.mockReset();
   });
 
+  test('GET /api/health retorna status da API', async () => {
+    const response = await request(server, 'GET', '/api/health');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: 'ok' });
+  });
+
+  test('POST /api/login valida campos obrigatorios', async () => {
+    const response = await request(server, 'POST', '/api/login', {
+      email: 'admin@motoprime.com',
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'E-mail e senha sao obrigatorios.' });
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
   test('POST /api/login retorna usuario quando as credenciais existem', async () => {
     executeMock.mockResolvedValueOnce([
       [{ id: 1, nome: 'Administrador', email: 'admin@motoprime.com' }],

@@ -1,12 +1,11 @@
 services:
   db:
     image: mysql:8.0
-    platform: linux/arm64/v8
-    container_name: kennel_db
+    container_name: moto_prime_db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: kennel_shop
+      MYSQL_DATABASE: teste
     ports:
       - "3306:3306"
     volumes:

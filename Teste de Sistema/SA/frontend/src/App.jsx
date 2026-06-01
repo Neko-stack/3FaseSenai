@@ -1,7 +1,8 @@
 import { Login } from './Login.jsx';
 import { Heart, Search, ShoppingBag } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { categorias, motos } from './motos.js';
+import { useEffect, useMemo, useState } from 'react';
+import { buscarMotosDaApi } from './api.js';
+import { motos as motosLocais } from './motos.js';
 
 const moeda = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -31,14 +32,38 @@ export function App() {
   const [pagamento, setPagamento] = useState('Pix');
   const [compraFinalizada, setCompraFinalizada] = useState(false);
   const [usuario, setUsuario] = useState(() => lerStorage('usuario-motos', null));
+  const [catalogo, setCatalogo] = useState(motosLocais);
+
+  useEffect(() => {
+    let ativo = true;
+
+    buscarMotosDaApi()
+      .then((motosDaApi) => {
+        if (ativo && motosDaApi.length > 0) {
+          setCatalogo(motosDaApi);
+        }
+      })
+      .catch(() => {
+        setCatalogo(motosLocais);
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  const categorias = useMemo(
+    () => ['Todas', ...new Set(catalogo.map((moto) => moto.categoria))],
+    [catalogo]
+  );
 
   const motosFiltradas = useMemo(() => {
-    return motos.filter((moto) => {
+    return catalogo.filter((moto) => {
       const combinaBusca = moto.nome.toLowerCase().includes(busca.toLowerCase());
       const combinaCategoria = categoria === 'Todas' || moto.categoria === categoria;
       return combinaBusca && combinaCategoria;
     });
-  }, [busca, categoria]);
+  }, [busca, categoria, catalogo]);
 
   function fazerLogout() {
     window.localStorage.removeItem('usuario-motos');
@@ -110,7 +135,7 @@ export function App() {
             pagamento.
           </p>
           <div className="hero__stats" aria-label="Resumo do estoque">
-            <span>{motos.length} motos</span>
+            <span>{catalogo.length} motos</span>
             <span>{favoritos.length} favoritas</span>
             <span>{compras.length} compras</span>
           </div>

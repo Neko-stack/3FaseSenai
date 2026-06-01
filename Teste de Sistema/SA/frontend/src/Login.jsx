@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { loginNaApi } from './api.js';
 
 const USUARIOS_CHAVE = 'usuarios-motos';
 const usuarioPadrao = {
@@ -33,12 +34,27 @@ export function Login({ aoLogar }) {
     setMensagem('');
   }
 
-  function gerenciarLogin(event) {
+  async function gerenciarLogin(event) {
     event.preventDefault();
+
+    const emailTratado = email.trim();
+
+    try {
+      const usuarioDaApi = await loginNaApi(emailTratado, senha);
+
+      if (usuarioDaApi) {
+        const usuario = { email: usuarioDaApi.email, nome: usuarioDaApi.nome };
+        window.localStorage.setItem('usuario-motos', JSON.stringify(usuario));
+        aoLogar(usuario);
+        return;
+      }
+    } catch {
+      // Mantem o app utilizavel quando a API nao estiver rodando.
+    }
 
     const usuarios = [usuarioPadrao, ...lerUsuarios()];
     const usuarioEncontrado = usuarios.find(
-      (usuario) => usuario.email === email.trim() && usuario.senha === senha
+      (usuario) => usuario.email === emailTratado && usuario.senha === senha
     );
 
     if (usuarioEncontrado) {

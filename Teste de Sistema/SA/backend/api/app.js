@@ -1,13 +1,22 @@
 import express from "express";
+import cors from "cors";
 import { pathToFileURL } from "url";
 import { pool as db } from "./db/db.js";
 
 export const app = express();
+app.use(cors());
 app.use(express.json());
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 app.post('/api/login', async (req, res) => {
   const { email, senha } = req.body;
+
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'E-mail e senha sao obrigatorios.' });
+  }
 
   try {
     const [rows] = await db.execute(
@@ -50,6 +59,6 @@ app.get('/api/motos', async (req, res) => {
 });
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));
 }
