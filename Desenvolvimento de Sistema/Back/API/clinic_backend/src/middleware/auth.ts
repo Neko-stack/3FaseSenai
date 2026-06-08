@@ -1,24 +1,12 @@
-import { verificarTokenAcesso } from "../utils/jwt";
-import type {
-    Response, Request, NextFunction
-} from "express";
+import type { Response, Request, NextFunction } from "express";
+import { extractAndVerifyToken } from "../utils/extractToken";
+
 export function auth(req: Request, res: Response, next: NextFunction) {
-    const header = req.headers.authorization;
-    if (!header?.startsWith("Bearer ")) {
-        return res.status(401).json({
-            error: "missing token"
-        })
-    }
     try {
-        const token = header.slice("Bearer ".length)
-        const payload = verificarTokenAcesso(token)
-        if (!payload) return res.status(401).json({
-            error: "invalid token"
-        })
+        const token = extractAndVerifyToken(req, res);
+        if (!token) return;
         next();
     } catch {
-        return res.status(401).json({
-            error: "invalid or expired token"
-        })
+        return res.status(401).json({ error: "invalid or expired token" });
     }
 }

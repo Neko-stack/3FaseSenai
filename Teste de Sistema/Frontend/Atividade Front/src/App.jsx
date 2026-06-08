@@ -1,24 +1,8 @@
 import { Heart, Search, ShoppingBag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { categorias, motos } from './motos.js';
-
-const moeda = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-});
-
-function lerStorage(chave, valorInicial) {
-  try {
-    const valor = window.localStorage.getItem(chave);
-    return valor ? JSON.parse(valor) : valorInicial;
-  } catch {
-    return valorInicial;
-  }
-}
-
-function salvarStorage(chave, valor) {
-  window.localStorage.setItem(chave, JSON.stringify(valor));
-}
+import { lerStorage, salvarStorage } from '../../../shared/storage.js';
+import { moeda } from '../../../shared/formatters.js';
 
 export function App() {
   const [busca, setBusca] = useState('');

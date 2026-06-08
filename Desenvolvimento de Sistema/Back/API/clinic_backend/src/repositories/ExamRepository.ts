@@ -1,5 +1,6 @@
-import type { Exame, PrismaClient, Token, } from "../prisma/generated/prisma/client";
+import type { Exame, PrismaClient } from "../prisma/generated/prisma/client";
 import { prisma } from "../prisma/prisma";
+import { buildPaginationArgs, buildPaginatedResponse } from "../utils/paginate";
 
 export class ExamRepository {
     constructor(private readonly prisma: PrismaClient) {
@@ -7,20 +8,15 @@ export class ExamRepository {
     }
 
     async listarTodosExames(pagina?: number, limite?: number) {
-        const existePaginacao = pagina! && limite!
-        if (!existePaginacao) return await prisma.exame.findMany()
-        const exames = await prisma.exame.findMany({
-            skip: (pagina - 1) * limite,
-            take: limite
-        })
+        const pagination = buildPaginationArgs({ pagina, limite });
+        if (!pagination) return await prisma.exame.findMany();
 
+        const exames = await prisma.exame.findMany({
+            skip: pagination.skip,
+            take: pagination.take
+        });
         const total = await prisma.exame.count();
-        const totalPaginas = Math.ceil(total / limite)
-        return {
-            exames,
-            total,
-            totalPaginas
-        }
+        return buildPaginatedResponse(exames, total, limite!);
     }
 
     async buscarExameId(idExame: number) {
@@ -29,7 +25,6 @@ export class ExamRepository {
                 id: idExame
             }
         })
-
         return exame;
     }
 
@@ -55,20 +50,17 @@ export class ExamRepository {
                 id: idExame
             }
         })
-
         return exameAtualizado;
     }
 
     async deletarExame(idExame: number) {
-        const usuario = await prisma.usuario.delete({
+        const exame = await prisma.exame.delete({
             where: {
                 id: idExame
             }
         })
-        return usuario;
+        return exame;
     }
 }
-
-
 
 export const examRepository = new ExamRepository(prisma)

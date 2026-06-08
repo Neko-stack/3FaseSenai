@@ -1,5 +1,6 @@
-import type { PrismaClient, Token, Paciente } from "../prisma/generated/prisma/client";
+import type { PrismaClient, Paciente } from "../prisma/generated/prisma/client";
 import { prisma } from "../prisma/prisma";
+import { buildPaginationArgs, buildPaginatedResponse } from "../utils/paginate";
 
 export class PacienteRepository {
     constructor(private readonly prisma: PrismaClient) {
@@ -7,20 +8,15 @@ export class PacienteRepository {
     }
 
     async listarTodosPacientes(pagina?: number, limite?: number) {
-        const existePaginacao = pagina! && limite!
-        if (!existePaginacao) return await prisma.exame.findMany()
-        const exames = await prisma.exame.findMany({
-            skip: (pagina - 1) * limite,
-            take: limite
-        })
+        const pagination = buildPaginationArgs({ pagina, limite });
+        if (!pagination) return await prisma.paciente.findMany();
 
-        const total = await prisma.exame.count();
-        const totalPaginas = Math.ceil(total / limite)
-        return {
-            exames,
-            total,
-            totalPaginas
-        }
+        const pacientes = await prisma.paciente.findMany({
+            skip: pagination.skip,
+            take: pagination.take
+        });
+        const total = await prisma.paciente.count();
+        return buildPaginatedResponse(pacientes, total, limite!);
     }
 
     async buscarPacienteId(idPaciente: number) {
@@ -33,7 +29,6 @@ export class PacienteRepository {
     }
 
     async criarPaciente(dadosPaciente: Partial<Paciente>) {
-        console.log(dadosPaciente)
         return await this.prisma.paciente.create({
             data: {
                 nome: dadosPaciente.nome || "",
@@ -43,14 +38,12 @@ export class PacienteRepository {
                 data_nascimento: dadosPaciente.data_nascimento || "",
                 sexo: dadosPaciente.sexo || "",
                 responsavel: dadosPaciente.responsavel || "",
-
-
             }
         })
     }
 
     async atualizarPaciente(idPaciente: number, dadosParaAtualizar: Omit<Paciente, 'id'>) {
-        const PacienteAtualizado = await prisma.usuario.update({
+        const pacienteAtualizado = await prisma.paciente.update({
             data: {
                 ...dadosParaAtualizar
             },
@@ -58,9 +51,9 @@ export class PacienteRepository {
                 id: idPaciente
             }
         })
-
-        return PacienteAtualizado
+        return pacienteAtualizado
     }
+
     async deletarPaciente(idPaciente: number) {
         const paciente = await prisma.paciente.delete({
             where: {
