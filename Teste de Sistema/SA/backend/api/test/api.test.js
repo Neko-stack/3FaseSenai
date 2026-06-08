@@ -9,6 +9,7 @@ jest.unstable_mockModule('../db/db.js', () => ({
   },
 }));
 
+// O app importa controller -> service -> db, então o mock precisa estar ativo antes
 const { app } = await import('../app.js');
 
 function request(server, method, path, body) {
