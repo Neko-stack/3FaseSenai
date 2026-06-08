@@ -149,4 +149,38 @@ describe('API de motos', () => {
     expect(response.status).toBe(500);
     expect(response.body).toEqual({ error: 'Erro ao buscar motos' });
   });
+
+  test('POST /api/login retorna 500 quando o banco falha', async () => {
+    executeMock.mockRejectedValueOnce(new Error('database offline'));
+
+    const response = await request(server, 'POST', '/api/login', {
+      email: 'admin@motoprime.com',
+      senha: '123456',
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: 'Erro no servidor' });
+  });
+
+  test('POST /api/login retorna 400 quando email esta vazio', async () => {
+    const response = await request(server, 'POST', '/api/login', {
+      email: '',
+      senha: '123456',
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'E-mail e senha sao obrigatorios.' });
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
+  test('POST /api/login retorna 400 quando senha esta vazia', async () => {
+    const response = await request(server, 'POST', '/api/login', {
+      email: 'admin@motoprime.com',
+      senha: '',
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'E-mail e senha sao obrigatorios.' });
+    expect(executeMock).not.toHaveBeenCalled();
+  });
 });
