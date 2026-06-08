@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listarMotos, autenticarUsuario } from '../services/testaMotos.js';
+import { listarMotos, autenticarUsuario } from '../services/motoService.js';
 
 export const router = Router();
 

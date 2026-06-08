@@ -8,9 +8,9 @@ jest.unstable_mockModule('../db/db.js', () => ({
   },
 }));
 
-const { listarMotos, autenticarUsuario } = await import('../services/testaMotos.js');
+const { listarMotos, buscarMotoPorId, autenticarUsuario } = await import('../services/motoService.js');
 
-describe('testaMotos service', () => {
+describe('motoService', () => {
   beforeEach(() => {
     executeMock.mockReset();
   });
@@ -54,6 +54,26 @@ describe('testaMotos service', () => {
       executeMock.mockRejectedValueOnce(new Error('connection lost'));
 
       await expect(listarMotos()).rejects.toThrow('connection lost');
+    });
+  });
+
+  describe('buscarMotoPorId', () => {
+    test('retorna moto quando id existe', async () => {
+      const moto = { id: 1, marca: 'Honda', modelo: 'CB 500F' };
+      executeMock.mockResolvedValueOnce([[moto]]);
+
+      const resultado = await buscarMotoPorId(1);
+
+      expect(executeMock).toHaveBeenCalledWith('SELECT * FROM motos WHERE id = ?', [1]);
+      expect(resultado).toEqual(moto);
+    });
+
+    test('retorna null quando id não existe', async () => {
+      executeMock.mockResolvedValueOnce([[]]);
+
+      const resultado = await buscarMotoPorId(999);
+
+      expect(resultado).toBeNull();
     });
   });
 
