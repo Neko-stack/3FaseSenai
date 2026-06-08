@@ -1,15 +1,23 @@
 import {pool} from "./config.js";
 
 export async function buscarProdutoPorId(produtoId) {
-    const [rows] = await pool.query('SELECT * FROM produtos WHERE ID=?', [produtoId])
-    console.log(rows)
-    return rows[0]
+    try {
+        const [rows] = await pool.query('SELECT * FROM produtos WHERE ID=?', [produtoId])
+        return rows[0]
+    } catch (error) {
+        console.error(`[buscarProdutoPorId] Falha ao buscar produto ${produtoId}:`, error.message);
+        throw error;
+    }
 };
 
 export async function buscarView() {
-    const [rows] = await pool.query("SELECT * from vw_produtos")
-    console.log(rows)
-    return rows   
+    try {
+        const [rows] = await pool.query("SELECT * from vw_produtos")
+        return rows
+    } catch (error) {
+        console.error("[buscarView] Falha ao buscar view:", error.message);
+        throw error;
+    }
 };
 
 // export async function cadastrarNovoProduto(categoria, marca, valor_unitario, estoque_minimo, estoque_maximo) {
@@ -19,6 +27,9 @@ export async function buscarView() {
 //  }
 
 export async function produtosMaiorSaidaNoPeriodo(dataInicial, dataFinal) {
+    if (!dataInicial || !dataFinal) {
+        throw new Error("dataInicial e dataFinal são obrigatórios");
+    }
     const [rows] = await pool.query(`
     SELECT p.id AS produto_id, 
     p.categoria AS produtos, 
@@ -47,6 +58,9 @@ export async function produtosMaiorSaidaNoPeriodo(dataInicial, dataFinal) {
 } 
 
 export async function produtosMaiorEntradaNoPeriodo(dataInicial, dataFinal) {
+    if (!dataInicial || !dataFinal) {
+        throw new Error("dataInicial e dataFinal são obrigatórios");
+    }
     const [rows] = await pool.query(`
     SELECT p.id AS produto_id, 
     p.categoria AS produtos, 

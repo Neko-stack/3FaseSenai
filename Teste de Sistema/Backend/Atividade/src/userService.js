@@ -1,6 +1,6 @@
 export const createUser = (userData) => {
     
-    if (userData  || !userData.name)  {
+    if (!userData || !userData.name) {
         throw new Error('O nome do usuário é obrigatório.')
     }
      if(userData.age < 18){

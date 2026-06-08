@@ -48,8 +48,8 @@ export function Login({ aoLogar }) {
         aoLogar(usuario);
         return;
       }
-    } catch {
-      // Mantem o app utilizavel quando a API nao estiver rodando.
+    } catch (error) {
+      console.warn('[Login] API indisponível, tentando login local:', error?.message || error);
     }
 
     const usuarios = [usuarioPadrao, ...lerUsuarios()];

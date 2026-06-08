@@ -21,9 +21,10 @@ export const Login = ({ setDataLogin, setRegistrar }: Props) => {
                 localStorage.setItem("tokenAcesso", response.data.accessToken)
                 localStorage.setItem("tokenRefresh", response.data.refreshToken)
             }
-        } catch (error) {
-            console.log(error)
-            alert("Erro ao fazer o login, verifique suas credenciais!")
+        } catch (error: any) {
+            const serverMessage = error?.response?.data?.error;
+            console.error("[Login.logar]", serverMessage || error?.message || error);
+            alert(serverMessage || "Erro ao fazer o login, verifique suas credenciais!")
         }
     }
 

@@ -46,7 +46,8 @@ export async function loginNaApi(email, senha) {
   });
 
   if (!response.ok) {
-    return null;
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || `Erro no login (status ${response.status})`);
   }
 
   const data = await response.json();

@@ -21,9 +21,10 @@ export const Registrar = ({ setRegistrar }: Props) => {
                 setRegistrar(false)
                 alert("Usuário criado com sucesso!")
             }
-        } catch (error) {
-            console.log(error)
-            alert("Erro ao fazer o cadastro, tente novamente!")
+        } catch (error: any) {
+            const serverMessage = error?.response?.data?.error;
+            console.error("[Registrar.registrar]", serverMessage || error?.message || error);
+            alert(serverMessage || "Erro ao fazer o cadastro, tente novamente!")
         }
     }
 

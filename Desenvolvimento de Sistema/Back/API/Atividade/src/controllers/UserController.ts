@@ -11,10 +11,9 @@ class UserController {
             const usuarios = await this.service.listarTodosUsuarios();
             return res.status(200).json(usuarios)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[UserController.listarTodosUsuarios]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -24,10 +23,9 @@ class UserController {
             const usuarioCriado = await this.service.criarUsuario(dadosUsuario)
             return res.status(201).json(usuarioCriado)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[UserController.criarUsuario]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -37,10 +35,9 @@ class UserController {
             const usuario = await this.service.buscarUsuarioId(idUsuario)
             return res.status(200).json(usuario)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[UserController.buscarUsuarioId]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -51,10 +48,9 @@ class UserController {
             const usuarioAtualizado = await this.service.atualizarUsuario(idUsuario, dadosParaAtualizar)
             return res.status(200).json(usuarioAtualizado);
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[UserController.atualizarUsuario]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -68,10 +64,9 @@ class UserController {
                 data: usuario
             });
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[UserController.deletarUsuario]", message);
+            return res.status(500).json({ error: message });
         }
     }
 }

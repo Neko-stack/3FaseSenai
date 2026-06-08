@@ -15,10 +15,9 @@ class ExamController {
             const exames = await this.service.listarTodosExames(pagina, limite);
             return res.status(200).json(exames)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[ExamController.listarTodosExames]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -28,10 +27,9 @@ class ExamController {
             const exameCriado = await this.service.criarExame(dadosExame)
             return res.status(201).json(exameCriado)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[ExamController.criarExame]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -41,10 +39,9 @@ class ExamController {
             const exame = await this.service.buscarExameId(idExame)
             return res.status(200).json(exame)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[ExamController.buscarExameId]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -55,10 +52,9 @@ class ExamController {
             const exameAtualizado = await this.service.atualizarExame(idExame, dadosParaAtualizar)
             return res.status(200).json(exameAtualizado);
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[ExamController.atualizarExame]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -72,10 +68,9 @@ class ExamController {
                 data: exame
             });
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[ExamController.deletarExame]", message);
+            return res.status(500).json({ error: message });
         }
     }
 }

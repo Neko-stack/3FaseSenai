@@ -21,9 +21,9 @@ function fazerBolo(time){
 }
 
 fazerBolo(3500)
-    .then(console.log('Opa assou o bolo'))
-    .catch(console.error('Vixi deu ruim o bolo'))
-.finally(console.log('Oloco o bolo ja acabou'))
+    .then(() => console.log('Opa assou o bolo'))
+    .catch((error) => console.error('Vixi deu ruim o bolo:', error))
+    .finally(() => console.log('Oloco o bolo ja acabou'))
 
 
 
@@ -46,6 +46,6 @@ function numeros(algum){
 }
 
 numeros(3500)
-    .then(console.log('resolve'))
-    .catch(console.error('reject'))
-.finally(console.log('E isso é tudo por hoje pessoal!'))
+    .then(() => console.log('resolve'))
+    .catch((error) => console.error('reject:', error))
+    .finally(() => console.log('E isso é tudo por hoje pessoal!'))

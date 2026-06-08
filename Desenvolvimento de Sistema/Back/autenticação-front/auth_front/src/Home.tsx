@@ -13,7 +13,12 @@ export const Home = ({ setDataLogin }: Props) => {
         setDataLogin(null)
     }
 
-    const dadosUsuario: any = jwtDecode(localStorage.getItem('tokenAcesso') || "");
+    let dadosUsuario: any = {};
+    try {
+        dadosUsuario = jwtDecode(localStorage.getItem('tokenAcesso') || "");
+    } catch (error) {
+        console.error("[Home] Falha ao decodificar token:", error instanceof Error ? error.message : error);
+    }
 
     const buscarDadosUsuario = async () => {
         try {
@@ -26,8 +31,8 @@ export const Home = ({ setDataLogin }: Props) => {
                 setDadosUsuarios(response.data)
             }
         } catch (error) {
-            console.log(error)
-            alert("Erro ao fazer o login, verifique suas credenciais!")
+            console.error("[Home.buscarDadosUsuario]", error);
+            alert("Erro ao buscar dados dos usuários. Verifique sua conexão ou faça login novamente.")
         }
     }
 

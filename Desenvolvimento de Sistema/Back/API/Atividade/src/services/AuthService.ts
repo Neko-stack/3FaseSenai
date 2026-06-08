@@ -22,7 +22,6 @@ export class AuthService {
     async logar(dadosUsuario: Partial<Usuario>) {
         const existeUsuario = await this.repository.existeUsuario(dadosUsuario.email || '')
         const credenciaisValidas = await bcrypt.compare(dadosUsuario.senha || "", existeUsuario?.senha || "")
-        console.log(existeUsuario, credenciaisValidas, dadosUsuario)
         if (existeUsuario && credenciaisValidas) {
             const tokenAcesso = signTokenAcesso({
                 email: existeUsuario.email,

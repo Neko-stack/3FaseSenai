@@ -12,7 +12,7 @@ route.get("/:id", (req, res) => {
     const usuario = fruitService.getById(id)
 
     if (!usuario) {
-        res.status(404).json({ message: "user não encontrada" })
+        return res.status(404).json({ message: "user não encontrada" })
     }
 
     res.json(usuario)

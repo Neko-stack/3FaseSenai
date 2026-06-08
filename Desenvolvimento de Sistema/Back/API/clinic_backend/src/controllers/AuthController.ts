@@ -15,10 +15,9 @@ class AuthController {
                 data: usuarioCriado
             })
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[AuthController.cadastrar]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -32,10 +31,10 @@ class AuthController {
                 refreshToken: dadosLogin.tokenRefresh
             })
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            const status = message === "Credenciais inválidas" ? 401 : 500;
+            console.error("[AuthController.logar]", message);
+            return res.status(status).json({ error: message });
         }
     }
 }

@@ -14,10 +14,9 @@ class PacienteController {
             const exames = await this.service.listarTodosPacientes(pagina, limite);
             return res.status(200).json(exames)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[PacienteController.listarTodosPacientes]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -27,10 +26,9 @@ class PacienteController {
             const PacienteCriado = await this.service.criarPaciente(dadosPaciente)
             return res.status(201).json(PacienteCriado)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[PacienteController.criarPaciente]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -40,10 +38,9 @@ class PacienteController {
             const paciente = await this.service.buscarPacienteId(idPaciente)
             return res.status(200).json(paciente)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[PacienteController.buscarPacienteId]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -54,10 +51,9 @@ class PacienteController {
             const pacienteAtualizado = await this.service.atualizarPaciente(idPaciente, dadosParaAtualizar)
             return res.status(200).json(pacienteAtualizado);
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[PacienteController.atualizarPaciente]", message);
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -71,10 +67,9 @@ class PacienteController {
                 data: paciente
             });
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
-            })
+            const message = error instanceof Error ? error.message : "Erro interno do servidor";
+            console.error("[PacienteController.deletarPaciente]", message);
+            return res.status(500).json({ error: message });
         }
     }
 }

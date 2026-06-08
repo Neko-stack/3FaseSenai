@@ -23,6 +23,11 @@ app.use(auth)
 app.use(usuarioRouter)
 app.use(exameRouter)
 
+app.use((err: Error, _req: import("express").Request, res: import("express").Response, _next: import("express").NextFunction) => {
+  console.error("[GlobalErrorHandler]", err.message);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
+
 app.listen(port, () => {
   console.log("Servidor ta de pé :p")
 })
