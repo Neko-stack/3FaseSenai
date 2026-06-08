@@ -8,8 +8,6 @@ interface Token extends Partial<Usuario> {
 }
 
 export function signTokenAcesso(payload: Partial<Usuario>) {
-    console.log(payload, env)
-    console.log(process.env)
     return jwt.sign(payload, env.chaveAcesso, {
         expiresIn: '1h'
     })

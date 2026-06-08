@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const SECRET_KEY = "chaveSuperSecreta123456";
+const SECRET_KEY = process.env.JWT_SECRET || "";
 
 const token = jwt.sign(
     {

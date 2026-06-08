@@ -7,11 +7,11 @@ import { exameRouter } from './routes/exame';
 
 const app = express();
 app.use(express.json())
-app.use(cors())
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173").split(",")
+app.use(cors({ origin: allowedOrigins }))
 const port = 3000;
 
 app.get('/', (req, res) => {
-  console.log(req)
   res.send("Hello world")
 })
 

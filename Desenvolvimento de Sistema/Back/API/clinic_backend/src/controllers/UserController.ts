@@ -11,9 +11,8 @@ class UserController {
             const usuarios = await this.service.listarTodosUsuarios();
             return res.status(200).json(usuarios)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(500).json({
+                error: "Erro ao listar usuários."
             })
         }
     }
@@ -24,9 +23,8 @@ class UserController {
             const usuarioCriado = await this.service.criarUsuario(dadosUsuario)
             return res.status(201).json(usuarioCriado)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao criar usuário."
             })
         }
     }
@@ -37,9 +35,8 @@ class UserController {
             const usuario = await this.service.buscarUsuarioId(idUsuario)
             return res.status(200).json(usuario)
         } catch (error) {
-            console.log(error)
             return res.status(404).json({
-                error
+                error: "Usuário não encontrado."
             })
         }
     }
@@ -51,9 +48,8 @@ class UserController {
             const usuarioAtualizado = await this.service.atualizarUsuario(idUsuario, dadosParaAtualizar)
             return res.status(200).json(usuarioAtualizado);
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao atualizar usuário."
             })
         }
     }
@@ -68,12 +64,10 @@ class UserController {
                 data: usuario
             });
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao deletar usuário."
             })
         }
     }
 }
 export const userController = new UserController(userService)
-

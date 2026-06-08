@@ -18,7 +18,6 @@ export function roleMiddleware(roles: Role[]) {
                 error: "invalid token"
             })
             const tokenData = getToken(token);
-            console.log(tokenData)
             if (tokenData?.role && !roles.includes(tokenData?.role)) {
                 return res.status(401).json({
                     error: "Access denied."

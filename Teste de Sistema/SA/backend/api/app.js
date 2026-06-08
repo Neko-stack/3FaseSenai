@@ -4,7 +4,8 @@ import { pathToFileURL } from "url";
 import { pool as db } from "./db/db.js";
 
 export const app = express();
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173").split(",");
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
@@ -20,19 +21,26 @@ app.post('/api/login', async (req, res) => {
 
   try {
     const [rows] = await db.execute(
-      'SELECT id, nome, email FROM usuarios WHERE email = ? AND senha = ?',
-      [email, senha]
+      'SELECT id, nome, email, senha FROM usuarios WHERE email = ?',
+      [email]
     );
 
-    if (rows.length > 0) {
-      return res.status(200).json({
-        message: 'Login realizado!',
-        token: 'token',
-        usuario: rows[0]
-      });
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
     }
 
-    res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    const usuario = rows[0];
+
+    if (usuario.senha !== senha) {
+      // TODO: migrate to bcrypt.compare() once passwords are hashed in the DB
+      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    }
+
+    const { senha: _, ...usuarioSemSenha } = usuario;
+    return res.status(200).json({
+      message: 'Login realizado!',
+      usuario: usuarioSemSenha
+    });
   } catch (error) {
     res.status(500).json({ error: 'Erro no servidor' });
   }

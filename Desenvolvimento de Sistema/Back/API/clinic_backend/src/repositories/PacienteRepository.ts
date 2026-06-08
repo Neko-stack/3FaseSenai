@@ -33,7 +33,6 @@ export class PacienteRepository {
     }
 
     async criarPaciente(dadosPaciente: Partial<Paciente>) {
-        console.log(dadosPaciente)
         return await this.prisma.paciente.create({
             data: {
                 nome: dadosPaciente.nome || "",

@@ -15,9 +15,8 @@ class ExamController {
             const exames = await this.service.listarTodosExames(pagina, limite);
             return res.status(200).json(exames)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(500).json({
+                error: "Erro ao listar exames."
             })
         }
     }
@@ -28,9 +27,8 @@ class ExamController {
             const exameCriado = await this.service.criarExame(dadosExame)
             return res.status(201).json(exameCriado)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao criar exame."
             })
         }
     }
@@ -41,9 +39,8 @@ class ExamController {
             const exame = await this.service.buscarExameId(idExame)
             return res.status(200).json(exame)
         } catch (error) {
-            console.log(error)
             return res.status(404).json({
-                error
+                error: "Exame não encontrado."
             })
         }
     }
@@ -55,9 +52,8 @@ class ExamController {
             const exameAtualizado = await this.service.atualizarExame(idExame, dadosParaAtualizar)
             return res.status(200).json(exameAtualizado);
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao atualizar exame."
             })
         }
     }
@@ -72,9 +68,8 @@ class ExamController {
                 data: exame
             });
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao deletar exame."
             })
         }
     }

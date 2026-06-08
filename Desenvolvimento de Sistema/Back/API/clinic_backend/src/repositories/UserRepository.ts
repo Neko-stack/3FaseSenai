@@ -21,7 +21,6 @@ export class UserRepository {
     }
 
     async criarUsuario(dadosUsuario: Partial<Usuario>) {
-        console.log(dadosUsuario)
         return await this.prisma.usuario.create({
             data: {
                 email: dadosUsuario.email || "",

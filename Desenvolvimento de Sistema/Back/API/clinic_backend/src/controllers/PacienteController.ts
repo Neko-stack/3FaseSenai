@@ -14,9 +14,8 @@ class PacienteController {
             const exames = await this.service.listarTodosPacientes(pagina, limite);
             return res.status(200).json(exames)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(500).json({
+                error: "Erro ao listar pacientes."
             })
         }
     }
@@ -27,9 +26,8 @@ class PacienteController {
             const PacienteCriado = await this.service.criarPaciente(dadosPaciente)
             return res.status(201).json(PacienteCriado)
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao criar paciente."
             })
         }
     }
@@ -40,9 +38,8 @@ class PacienteController {
             const paciente = await this.service.buscarPacienteId(idPaciente)
             return res.status(200).json(paciente)
         } catch (error) {
-            console.log(error)
             return res.status(404).json({
-                error
+                error: "Paciente não encontrado."
             })
         }
     }
@@ -54,9 +51,8 @@ class PacienteController {
             const pacienteAtualizado = await this.service.atualizarPaciente(idPaciente, dadosParaAtualizar)
             return res.status(200).json(pacienteAtualizado);
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao atualizar paciente."
             })
         }
     }
@@ -71,12 +67,10 @@ class PacienteController {
                 data: paciente
             });
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao deletar paciente."
             })
         }
     }
 }
 export const pacienteController = new PacienteController(pacienteService)
-

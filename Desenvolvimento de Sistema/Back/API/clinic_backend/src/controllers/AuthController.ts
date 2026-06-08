@@ -15,9 +15,8 @@ class AuthController {
                 data: usuarioCriado
             })
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(400).json({
+                error: "Erro ao cadastrar usuário."
             })
         }
     }
@@ -32,9 +31,8 @@ class AuthController {
                 refreshToken: dadosLogin.tokenRefresh
             })
         } catch (error) {
-            console.log(error)
-            return res.status(404).json({
-                error
+            return res.status(401).json({
+                error: "Credenciais inválidas."
             })
         }
     }

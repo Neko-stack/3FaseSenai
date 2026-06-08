@@ -2,11 +2,6 @@ import { useState } from 'react';
 import { loginNaApi } from './api.js';
 
 const USUARIOS_CHAVE = 'usuarios-motos';
-const usuarioPadrao = {
-  nome: 'Administrador',
-  email: 'admin@motoprime.com',
-  senha: '123456',
-};
 
 function lerUsuarios() {
   try {
@@ -52,7 +47,7 @@ export function Login({ aoLogar }) {
       // Mantem o app utilizavel quando a API nao estiver rodando.
     }
 
-    const usuarios = [usuarioPadrao, ...lerUsuarios()];
+    const usuarios = lerUsuarios();
     const usuarioEncontrado = usuarios.find(
       (usuario) => usuario.email === emailTratado && usuario.senha === senha
     );
@@ -73,9 +68,7 @@ export function Login({ aoLogar }) {
     const nomeTratado = nome.trim();
     const emailTratado = email.trim();
     const usuarios = lerUsuarios();
-    const emailJaExiste =
-      usuarioPadrao.email === emailTratado ||
-      usuarios.some((usuario) => usuario.email === emailTratado);
+    const emailJaExiste = usuarios.some((usuario) => usuario.email === emailTratado);
 
     if (emailJaExiste) {
       setErro('Este e-mail já está cadastrado.');
