@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { listarMotos, autenticarUsuario } from '../services/motoService.js';
+import { listarMotos, autenticarUsuario } from '../services/testaMotos.js';
 
 export const router = Router();
 
-router.get('/api/health', (req, res) => {
+router.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-router.post('/api/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, senha } = req.body;
 
   if (!email || !senha) {
@@ -31,7 +31,7 @@ router.post('/api/login', async (req, res) => {
   }
 });
 
-router.get('/api/motos', async (req, res) => {
+router.get('/motos', async (req, res) => {
   const { busca } = req.query;
 
   try {
