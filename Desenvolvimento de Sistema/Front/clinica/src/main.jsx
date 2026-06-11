@@ -1,31 +1,48 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { createBrowserRouter } from 'react-router'
-import { RouterProvider } from 'react-router'
-import {ToastContainer} from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import Dashboard from './Pages/Dashboard'
-import Login from './Pages/Login'
 
+//react router
+import { createBrowserRouter } from "react-router";
+import { RouterProvider } from "react-router/dom";
+
+//toastify
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import { AuthProvider } from './contexts/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import DashboardLayout from './layouts/DashboardLayout';
+import MedicalRecordList from './components/MedicalRecordList';
+import RegisterFormPatient from './components/RegisterFormPatient';
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />,
+    element: <Login />
   },
   {
-    path: "/dashboard",
-    element: <Dashboard />,
+
+    element: (
+      <PrivateRoute>
+        <DashboardLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { path: "/dashboard", element: <Dashboard /> },
+      { path: "/prontuarios", element: <MedicalRecordList /> },
+      { path: "/pacientes", element: <RegisterFormPatient /> },
+    ]
   }
 ]);
 
-
-
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <ToastContainer />
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 )
