@@ -26,3 +26,21 @@ export async function autenticarUsuario(email, senha) {
 
   return rows.length > 0 ? rows[0] : null;
 }
+
+export async function buscarUsuarioPorEmail(email) {
+  const [rows] = await db.execute('SELECT id, nome, email FROM usuarios WHERE email = ?', [email]);
+  return rows.length > 0 ? rows[0] : null;
+}
+
+export async function cadastrarUsuario({ nome, email, senha }) {
+  const [resultado] = await db.execute(
+    'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
+    [nome, email, senha]
+  );
+
+  return {
+    id: resultado.insertId,
+    nome,
+    email,
+  };
+}

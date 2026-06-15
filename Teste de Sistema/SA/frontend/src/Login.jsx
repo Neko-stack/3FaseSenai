@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { loginNaApi } from './api.js';
+import { cadastrarUsuarioNaApi, loginNaApi } from './api.js';
 
 const USUARIOS_CHAVE = 'usuarios-motos';
 const usuarioPadrao = {
@@ -15,10 +15,6 @@ function lerUsuarios() {
   } catch {
     return [];
   }
-}
-
-function salvarUsuarios(usuarios) {
-  window.localStorage.setItem(USUARIOS_CHAVE, JSON.stringify(usuarios));
 }
 
 export function Login({ aoLogar }) {
@@ -67,27 +63,23 @@ export function Login({ aoLogar }) {
     }
   }
 
-  function gerenciarCadastro(event) {
+  async function gerenciarCadastro(event) {
     event.preventDefault();
 
     const nomeTratado = nome.trim();
     const emailTratado = email.trim();
-    const usuarios = lerUsuarios();
-    const emailJaExiste =
-      usuarioPadrao.email === emailTratado ||
-      usuarios.some((usuario) => usuario.email === emailTratado);
 
-    if (emailJaExiste) {
-      setErro('Este e-mail já está cadastrado.');
+    try {
+      await cadastrarUsuarioNaApi({ nome: nomeTratado, email: emailTratado, senha });
+      setModo('login');
+      setNome('');
+      setSenha('');
+      setMensagem('Cadastro realizado. Entre com seu e-mail e senha.');
+      setErro('');
+    } catch (error) {
+      setErro(error.message || 'Nao foi possivel cadastrar usuario.');
       setMensagem('');
-      return;
     }
-
-    salvarUsuarios([...usuarios, { nome: nomeTratado, email: emailTratado, senha }]);
-    setModo('login');
-    setSenha('');
-    setMensagem('Cadastro realizado. Entre com seu e-mail e senha.');
-    setErro('');
   }
 
   return (

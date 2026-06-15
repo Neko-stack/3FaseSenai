@@ -34,6 +34,56 @@ test('permite sair e volta para o formulario de login', async ({ page }) => {
 });
 
 test('cadastra usuario e permite login com a nova conta', async ({ page }) => {
+  await page.route('http://localhost:3000/api/usuarios', async (route) => {
+    const body = route.request().postDataJSON();
+
+    expect(body).toEqual({
+      nome: 'Maria Cliente',
+      email: 'maria@motoprime.com',
+      senha: '123456',
+    });
+
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: 'Usuario cadastrado!',
+        usuario: {
+          id: 2,
+          nome: 'Maria Cliente',
+          email: 'maria@motoprime.com',
+        },
+      }),
+    });
+  });
+
+  await page.route('http://localhost:3000/api/login', async (route) => {
+    const body = route.request().postDataJSON();
+
+    if (body.email !== 'maria@motoprime.com' || body.senha !== '123456') {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'E-mail ou senha incorretos.' }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: 'Login realizado!',
+        token: 'token',
+        usuario: {
+          id: 2,
+          nome: 'Maria Cliente',
+          email: 'maria@motoprime.com',
+        },
+      }),
+    });
+  });
+
   await page.getByRole('button', { name: 'Cadastro' }).click();
   await page.getByPlaceholder('Seu nome').fill('Maria Cliente');
   await page.getByPlaceholder('seu@email.com').fill('maria@motoprime.com');

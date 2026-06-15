@@ -52,3 +52,19 @@ export async function loginNaApi(email, senha) {
   const data = await response.json();
   return data.usuario;
 }
+
+export async function cadastrarUsuarioNaApi({ nome, email, senha }) {
+  const response = await fetch(`${API_URL}/api/usuarios`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, email, senha }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Erro ao cadastrar usuario');
+  }
+
+  return data.usuario;
+}

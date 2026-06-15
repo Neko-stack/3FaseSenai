@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { listarMotos, autenticarUsuario } from '../services/motoService.js';
+import {
+  autenticarUsuario,
+  buscarUsuarioPorEmail,
+  cadastrarUsuario,
+  listarMotos,
+} from '../services/motoService.js';
 
 export const router = Router();
 
@@ -28,6 +33,41 @@ router.post('/api/login', async (req, res) => {
     res.status(401).json({ error: 'E-mail ou senha incorretos.' });
   } catch (error) {
     res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+router.post('/api/usuarios', async (req, res) => {
+  const { nome, email, senha } = req.body;
+  const nomeTratado = typeof nome === 'string' ? nome.trim() : '';
+  const emailTratado = typeof email === 'string' ? email.trim() : '';
+
+  if (!nomeTratado || !emailTratado || !senha) {
+    return res.status(400).json({ error: 'Nome, e-mail e senha sao obrigatorios.' });
+  }
+
+  if (senha.length < 6) {
+    return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres.' });
+  }
+
+  try {
+    const usuarioExistente = await buscarUsuarioPorEmail(emailTratado);
+
+    if (usuarioExistente) {
+      return res.status(409).json({ error: 'Este e-mail ja esta cadastrado.' });
+    }
+
+    const usuario = await cadastrarUsuario({
+      nome: nomeTratado,
+      email: emailTratado,
+      senha,
+    });
+
+    return res.status(201).json({
+      message: 'Usuario cadastrado!',
+      usuario,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao cadastrar usuario' });
   }
 });
 

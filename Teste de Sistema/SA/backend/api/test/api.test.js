@@ -113,6 +113,49 @@ describe('API de motos', () => {
     expect(response.body).toEqual({ error: 'E-mail ou senha incorretos.' });
   });
 
+  test('POST /api/usuarios cadastra usuario quando e-mail ainda nao existe', async () => {
+    executeMock.mockResolvedValueOnce([[]]);
+    executeMock.mockResolvedValueOnce([{ insertId: 5 }]);
+
+    const response = await request(server, 'POST', '/api/usuarios', {
+      nome: 'Maria Cliente',
+      email: 'maria@motoprime.com',
+      senha: '123456',
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      message: 'Usuario cadastrado!',
+      usuario: {
+        id: 5,
+        nome: 'Maria Cliente',
+        email: 'maria@motoprime.com',
+      },
+    });
+    expect(executeMock).toHaveBeenNthCalledWith(1, 'SELECT id FROM usuarios WHERE email = ?', [
+      'maria@motoprime.com',
+    ]);
+    expect(executeMock).toHaveBeenNthCalledWith(
+      2,
+      'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
+      ['Maria Cliente', 'maria@motoprime.com', '123456']
+    );
+  });
+
+  test('POST /api/usuarios retorna 409 quando e-mail ja existe', async () => {
+    executeMock.mockResolvedValueOnce([[{ id: 1 }]]);
+
+    const response = await request(server, 'POST', '/api/usuarios', {
+      nome: 'Administrador',
+      email: 'admin@motoprime.com',
+      senha: '123456',
+    });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({ error: 'Este e-mail ja esta cadastrado.' });
+    expect(executeMock).toHaveBeenCalledTimes(1);
+  });
+
   test('GET /api/motos lista todas as motos sem busca', async () => {
     const motos = [
       { id: 1, marca: 'Honda', modelo: 'CB 500F' },
