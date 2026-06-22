@@ -135,7 +135,7 @@ router.post('/motos', exigirAutenticacao, async (req, res) => {
   const dados = dadosMoto(req.body);
   if (!dados) return res.status(400).json({ error: 'Dados da moto invalidos.' });
   try {
-    return res.status(201).json(await cadastrarMoto(dados));
+    return res.status(201).json(await cadastrarMoto(dados, req.usuarioId));
   } catch (error) {
     if (error.code === 'P2002') return res.status(409).json({ error: 'Moto ja cadastrada.' });
     return res.status(500).json({ error: 'Erro ao cadastrar moto.' });
@@ -147,9 +147,9 @@ router.put('/motos/:id', exigirAutenticacao, async (req, res) => {
   const dados = dadosMoto(req.body);
   if (!dados) return res.status(400).json({ error: 'Dados da moto invalidos.' });
   try {
-    return res.json(await atualizarMoto(req.params.id, dados));
+    return res.json(await atualizarMoto(req.params.id, dados, req.usuarioId));
   } catch (error) {
-    if (error.code === 'P2025') return res.status(404).json({ error: 'Moto nao encontrada.' });
+    if (error.code === 'P2025') return res.status(403).json({ error: 'Somente o criador pode editar esta moto.' });
     if (error.code === 'P2002') return res.status(409).json({ error: 'Moto ja cadastrada.' });
     return res.status(500).json({ error: 'Erro ao atualizar moto.' });
   }
@@ -158,10 +158,10 @@ router.put('/motos/:id', exigirAutenticacao, async (req, res) => {
 router.delete('/motos/:id', exigirAutenticacao, async (req, res) => {
   if (!/^\d+$/.test(req.params.id)) return res.status(400).json({ error: 'Id da moto invalido.' });
   try {
-    await excluirMoto(req.params.id);
+    await excluirMoto(req.params.id, req.usuarioId);
     return res.status(204).end();
   } catch (error) {
-    if (error.code === 'P2025') return res.status(404).json({ error: 'Moto nao encontrada.' });
+    if (error.code === 'P2025') return res.status(403).json({ error: 'Somente o criador pode excluir esta moto.' });
     return res.status(500).json({ error: 'Erro ao excluir moto.' });
   }
 });

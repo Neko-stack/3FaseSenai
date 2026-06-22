@@ -77,13 +77,19 @@ test('cadastro de moto persiste, altera e exclui os dados pela API real', async 
 
   const card = page.locator('.moto-card').filter({ hasText: `Ducati ${modelo}` });
   await expect(card).toBeVisible();
-  await card.getByRole('button', { name: 'Editar' }).click();
+  await expect(card.getByRole('button', { name: 'Editar' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Usuario' }).click();
+  const motoDoUsuario = page.getByRole('listitem').filter({ hasText: `Ducati ${modelo}` });
+  await motoDoUsuario.getByRole('button', { name: 'Editar' }).click();
   await page.getByLabel('Cor').fill('Azul');
   await page.getByRole('button', { name: 'Salvar alteracoes' }).click();
+  await expect(page.getByRole('heading', { name: 'Informacoes do usuario' })).toBeVisible();
+  await page.getByRole('button', { name: 'Home' }).click();
   await expect(page.locator('.moto-card').filter({ hasText: `Ducati ${modelo}` })).toContainText('Azul');
 
+  await page.getByRole('button', { name: 'Usuario' }).click();
   page.once('dialog', (dialog) => dialog.accept());
-  await page.locator('.moto-card').filter({ hasText: `Ducati ${modelo}` }).getByRole('button', { name: 'Excluir' }).click();
+  await page.getByRole('listitem').filter({ hasText: `Ducati ${modelo}` }).getByRole('button', { name: 'Excluir' }).click();
   await expect(page.getByText(`Ducati ${modelo}`)).toBeHidden();
 });
 
@@ -103,4 +109,24 @@ test('cadastro de moto impede envio de ano inválido', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Cadastrar nova moto' })).toBeVisible();
   await expect(page.getByLabel('Ano')).toBeFocused();
   expect(await page.getByLabel('Ano').evaluate((input) => input.validity.valid)).toBe(false);
+});
+
+test('limpa compras antigas e permite remover uma compra para comprar novamente', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('compras-motos', JSON.stringify([{ motoId: 1, moto: 'Compra antiga' }])));
+  await entrar(page);
+
+  const card = page.locator('.moto-card').filter({ hasText: 'Honda CB 500F' });
+  await expect(card.getByRole('button', { name: 'Comprar' })).toBeEnabled();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('compras-motos'))).toBeNull();
+
+  await card.getByRole('button', { name: 'Comprar' }).click();
+  await page.getByLabel('Nome').fill('Administrador');
+  await page.getByRole('button', { name: 'Confirmar compra' }).click();
+  await page.getByRole('button', { name: 'Fechar' }).click();
+  await expect(card.getByRole('button', { name: 'Comprada' })).toBeDisabled();
+
+  await page.getByRole('button', { name: 'Usuario' }).click();
+  await page.getByRole('listitem').filter({ hasText: 'Honda CB 500F' }).getByRole('button', { name: 'Remover' }).click();
+  await page.getByRole('button', { name: 'Home' }).click();
+  await expect(card.getByRole('button', { name: 'Comprar' })).toBeEnabled();
 });

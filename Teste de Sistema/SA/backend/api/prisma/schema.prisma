@@ -15,6 +15,7 @@ model Usuario {
   telefone String? @db.VarChar(20)
   criadoEm DateTime @default(now()) @map("criado_em")
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  motos         Moto[]
 
   @@map("usuarios")
 }
@@ -34,7 +35,10 @@ model Moto {
   destaque      Boolean  @default(false)
   criadoEm      DateTime @default(now()) @map("criado_em")
   atualizadoEm  DateTime @updatedAt @map("atualizado_em")
+  criadorId     Int?     @map("criador_id")
+  criador       Usuario? @relation(fields: [criadorId], references: [id], onDelete: SetNull)
 
   @@unique([marca, modelo], map: "marca_modelo_unique")
+  @@index([criadorId])
   @@map("motos")
 }

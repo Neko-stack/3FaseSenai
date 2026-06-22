@@ -255,8 +255,8 @@ describe('API de motos', () => {
 
     expect(cadastro.status).toBe(201);
     expect(alteracao.status).toBe(200);
-    expect(motoCreateMock).toHaveBeenCalledWith({ data: { ...dados, imagem: null, descricao: null } });
-    expect(motoUpdateMock).toHaveBeenCalledWith({ where: { id: 10 }, data: { ...dados, cor: 'Vermelha', imagem: null, descricao: null } });
+    expect(motoCreateMock).toHaveBeenCalledWith({ data: { ...dados, imagem: null, descricao: null, criadorId: 1 } });
+    expect(motoUpdateMock).toHaveBeenCalledWith({ where: { id: 10, criadorId: 1 }, data: { ...dados, cor: 'Vermelha', imagem: null, descricao: null } });
   });
 
   test('DELETE /api/motos remove uma moto autenticada', async () => {
@@ -265,6 +265,6 @@ describe('API de motos', () => {
       Authorization: `Bearer ${criarToken({ id: 1 })}`,
     });
     expect(response.status).toBe(204);
-    expect(motoDeleteMock).toHaveBeenCalledWith({ where: { id: 10 } });
+    expect(motoDeleteMock).toHaveBeenCalledWith({ where: { id: 10, criadorId: 1 } });
   });
 });

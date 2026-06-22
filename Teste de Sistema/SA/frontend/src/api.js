@@ -44,6 +44,7 @@ function normalizarMoto(moto) {
     marca: moto.marca,
     modelo: moto.modelo,
     descricao: moto.descricao || '',
+    criadorId: moto.criadorId,
   };
 }
 

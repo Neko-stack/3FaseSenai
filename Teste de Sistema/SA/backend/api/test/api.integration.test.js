@@ -97,6 +97,12 @@ describe('API integrada ao PostgreSQL', () => {
     const cadastro = await request(server, 'POST', '/api/motos', dados, auth);
     const duplicada = await request(server, 'POST', '/api/motos', dados, auth);
     const listagem = await request(server, 'GET', `/api/motos?busca=${encodeURIComponent(modelo)}`);
+    const outroEmail = `teste.integracao.outro.${execucao}@motoprime.com`;
+    await request(server, 'POST', '/api/usuarios', { nome: 'Outro usuario', email: outroEmail, senha: '123456' });
+    const outroLogin = await request(server, 'POST', '/api/login', { email: outroEmail, senha: '123456' });
+    const authOutroUsuario = { Authorization: `Bearer ${outroLogin.body.token}` };
+    const alteracaoNegada = await request(server, 'PUT', `/api/motos/${cadastro.body.id}`, { ...dados, cor: 'Preta' }, authOutroUsuario);
+    const exclusaoNegada = await request(server, 'DELETE', `/api/motos/${cadastro.body.id}`, null, authOutroUsuario);
     const alteracao = await request(server, 'PUT', `/api/motos/${cadastro.body.id}`, { ...dados, cor: 'Azul' }, auth);
     const exclusao = await request(server, 'DELETE', `/api/motos/${cadastro.body.id}`, null, auth);
     const removida = await prisma.moto.findUnique({ where: { id: cadastro.body.id } });
@@ -104,6 +110,8 @@ describe('API integrada ao PostgreSQL', () => {
     expect(cadastro.status).toBe(201);
     expect(duplicada).toEqual({ status: 409, body: { error: 'Moto ja cadastrada.' } });
     expect(listagem.body).toHaveLength(1);
+    expect(alteracaoNegada).toEqual({ status: 403, body: { error: 'Somente o criador pode editar esta moto.' } });
+    expect(exclusaoNegada).toEqual({ status: 403, body: { error: 'Somente o criador pode excluir esta moto.' } });
     expect(alteracao.body.cor).toBe('Azul');
     expect(exclusao.status).toBe(204);
     expect(removida).toBeNull();

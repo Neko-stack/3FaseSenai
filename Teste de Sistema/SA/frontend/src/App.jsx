@@ -1,5 +1,5 @@
 import { Login } from './Login.jsx';
-import { Heart, Plus, Search, ShoppingBag, User } from 'lucide-react';
+import { Plus, Search, ShoppingBag, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   atualizarMotoNaApi,
@@ -46,8 +46,7 @@ export function App() {
   const [pagina, setPagina] = useState('home');
   const [busca, setBusca] = useState('');
   const [categoria, setCategoria] = useState('Todas');
-  const [favoritos, setFavoritos] = useState(() => lerStorage('favoritos-motos', []));
-  const [compras, setCompras] = useState(() => lerStorage('compras-motos', []));
+  const [compras, setCompras] = useState([]);
   const [motoSelecionada, setMotoSelecionada] = useState(null);
   const [nomeComprador, setNomeComprador] = useState('');
   const [pagamento, setPagamento] = useState('Pix');
@@ -55,6 +54,7 @@ export function App() {
   const [usuario, setUsuario] = useState(() =>
     window.localStorage.getItem('token-motos') ? lerStorage('usuario-motos', null) : null
   );
+  const chaveCompras = usuario ? `compras-motos-${usuario.id}` : null;
   const [catalogoBase, setCatalogoBase] = useState([]);
   const [novaMoto, setNovaMoto] = useState(motoInicial);
   const [motoEmEdicao, setMotoEmEdicao] = useState(null);
@@ -83,6 +83,13 @@ export function App() {
     if (usuario) setPerfil({ nome: usuario.nome || '', email: usuario.email || '', telefone: usuario.telefone || '' });
   }, [usuario]);
 
+  useEffect(() => {
+    if (!usuario) return;
+    // Descarta o cache global antigo, que marcava motos como compradas para todos os usuarios.
+    window.localStorage.removeItem('compras-motos');
+    setCompras(lerStorage(`compras-motos-${usuario.id}`, []));
+  }, [usuario]);
+
   const catalogo = catalogoBase;
 
   const categorias = useMemo(
@@ -106,15 +113,6 @@ export function App() {
 
   if (!usuario) {
     return <Login aoLogar={setUsuario} />;
-  }
-
-  function alternarFavorito(id) {
-    const novosFavoritos = favoritos.includes(id)
-      ? favoritos.filter((favoritoId) => favoritoId !== id)
-      : [...favoritos, id];
-
-    setFavoritos(novosFavoritos);
-    salvarStorage('favoritos-motos', novosFavoritos);
   }
 
   function abrirCompra(moto) {
@@ -143,9 +141,15 @@ export function App() {
     const novasCompras = [...compras, novaCompra];
 
     setCompras(novasCompras);
-    salvarStorage('compras-motos', novasCompras);
+    salvarStorage(chaveCompras, novasCompras);
     fecharCompra();
     setCompraFinalizada(true);
+  }
+
+  function removerCompra(motoId) {
+    const novasCompras = compras.filter((compra) => compra.motoId !== motoId);
+    setCompras(novasCompras);
+    salvarStorage(chaveCompras, novasCompras);
   }
 
   function atualizarNovaMoto(campo, valor) {
@@ -179,13 +183,14 @@ export function App() {
       setErroApi('');
       setCategoria('Todas');
       setBusca('');
-      setPagina('home');
+      setPagina(motoEmEdicao ? 'usuario' : 'home');
     } catch (error) {
       setErroApi(error.message);
     }
   }
 
   function abrirEdicao(moto) {
+    if (moto.criadorId !== usuario.id) return;
     setNovaMoto({ marca: moto.marca, modelo: moto.modelo, categoria: moto.categoria, preco: moto.preco, ano: moto.ano, km: moto.km, cilindradas: moto.cilindradas, cor: moto.cor, imagem: moto.imagem || '', destaque: moto.destaque, descricao: moto.descricao || '' });
     setMotoEmEdicao(moto.id);
     setErroApi('');
@@ -265,7 +270,6 @@ export function App() {
               </p>
               <div className="hero__stats" aria-label="Resumo do estoque">
                 <span>{catalogo.length} motos</span>
-                <span>{favoritos.length} favoritas</span>
                 <span>{compras.length} compras</span>
               </div>
             </div>
@@ -301,7 +305,6 @@ export function App() {
             aria-label="Catalogo de motos"
           >
             {motosFiltradas.map((moto) => {
-              const favorito = favoritos.includes(moto.id);
               const comprada = compras.some((compra) => compra.motoId === moto.id);
 
               return (
@@ -338,17 +341,6 @@ export function App() {
                     <strong>{moeda.format(moto.preco)}</strong>
 
                     <div className="actions">
-                      <button className="secondary-button" onClick={() => abrirEdicao(moto)} type="button">Editar</button>
-                      <button className="secondary-button" onClick={() => excluirMoto(moto)} type="button">Excluir</button>
-                      <button
-                        aria-pressed={favorito}
-                        className="icon-button"
-                        onClick={() => alternarFavorito(moto.id)}
-                        title={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                        type="button"
-                      >
-                        <Heart fill={favorito ? 'currentColor' : 'none'} size={20} />
-                      </button>
                       <button
                         className="buy-button"
                         disabled={comprada}
@@ -388,10 +380,6 @@ export function App() {
               <strong>{usuario.email}</strong>
             </article>
             <article className="info-card">
-              <span>Favoritos</span>
-              <strong>{favoritos.length}</strong>
-            </article>
-            <article className="info-card">
               <span>Compras</span>
               <strong>{compras.length}</strong>
             </article>
@@ -405,6 +393,25 @@ export function App() {
             <button className="buy-button" type="submit">Salvar dados</button>
           </form>
 
+          <section className="history" aria-labelledby="titulo-minhas-motos">
+            <h2 id="titulo-minhas-motos">Minhas motos cadastradas</h2>
+            {catalogo.some((moto) => moto.criadorId === usuario.id) ? (
+              <ul>
+                {catalogo.filter((moto) => moto.criadorId === usuario.id).map((moto) => (
+                  <li key={moto.id}>
+                    <span>{moto.nome}</span>
+                    <div className="actions">
+                      <button className="secondary-button" onClick={() => abrirEdicao(moto)} type="button">Editar</button>
+                      <button className="secondary-button" onClick={() => excluirMoto(moto)} type="button">Excluir</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nenhuma moto cadastrada por voce.</p>
+            )}
+          </section>
+
           <section className="history" aria-labelledby="titulo-compras">
             <h2 id="titulo-compras">Compras realizadas</h2>
             {compras.length > 0 ? (
@@ -412,7 +419,10 @@ export function App() {
                 {compras.map((compra) => (
                   <li key={`${compra.motoId}-${compra.nome}`}>
                     <span>{compra.moto}</span>
-                    <strong>{compra.pagamento}</strong>
+                    <div className="actions">
+                      <strong>{compra.pagamento}</strong>
+                      <button className="secondary-button" onClick={() => removerCompra(compra.motoId)} type="button">Remover</button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -536,7 +546,7 @@ export function App() {
             {erroApi && <p className="form-error">{erroApi}</p>}
 
             <div className="form-actions">
-              <button className="secondary-button" onClick={() => { setNovaMoto(motoInicial); setMotoEmEdicao(null); setPagina('home'); }} type="button">
+              <button className="secondary-button" onClick={() => { setNovaMoto(motoInicial); setPagina(motoEmEdicao ? 'usuario' : 'home'); setMotoEmEdicao(null); }} type="button">
                 Cancelar
               </button>
               <button className="buy-button" type="submit">

@@ -99,14 +99,17 @@ export async function atualizarUsuario(id, { nome, email, telefone }) {
   });
 }
 
-export async function cadastrarMoto(dados) {
-  return prisma.moto.create({ data: dados });
+export async function cadastrarMoto(dados, criadorId) {
+  return prisma.moto.create({ data: { ...dados, criadorId } });
 }
 
-export async function atualizarMoto(id, dados) {
-  return prisma.moto.update({ where: { id: Number(id) }, data: dados });
+export async function atualizarMoto(id, dados, criadorId) {
+  return prisma.moto.update({
+    where: { id: Number(id), criadorId },
+    data: dados,
+  });
 }
 
-export async function excluirMoto(id) {
-  return prisma.moto.delete({ where: { id: Number(id) } });
+export async function excluirMoto(id, criadorId) {
+  return prisma.moto.delete({ where: { id: Number(id), criadorId } });
 }

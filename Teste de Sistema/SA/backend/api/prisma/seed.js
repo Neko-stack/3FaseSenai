@@ -11,7 +11,7 @@ async function hash(senha) {
   return `scrypt$${salt}$${valor.toString('hex')}`;
 }
 
-await prisma.usuario.upsert({
+const administrador = await prisma.usuario.upsert({
   where: { email: 'admin@motoprime.com' },
   update: {},
   create: { nome: 'Administrador', email: 'admin@motoprime.com', senha: await hash('123456') },
@@ -25,8 +25,8 @@ const motos = [
 for (const moto of motos) {
   await prisma.moto.upsert({
     where: { marca_modelo: { marca: moto.marca, modelo: moto.modelo } },
-    update: {},
-    create: moto,
+    update: { criadorId: administrador.id },
+    create: { ...moto, criadorId: administrador.id },
   });
 }
 
