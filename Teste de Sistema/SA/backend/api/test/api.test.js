@@ -1,17 +1,37 @@
 import { jest } from '@jest/globals';
+import { scryptSync } from 'crypto';
 import http from 'http';
 
-const executeMock = jest.fn();
+const motoFindManyMock = jest.fn();
+const motoCreateMock = jest.fn();
+const motoUpdateMock = jest.fn();
+const motoDeleteMock = jest.fn();
+const usuarioFindUniqueMock = jest.fn();
+const usuarioCreateMock = jest.fn();
 
 jest.unstable_mockModule('../db/db.js', () => ({
-  pool: {
-    execute: executeMock,
+  prisma: {
+    moto: {
+      findMany: motoFindManyMock,
+      create: motoCreateMock,
+      update: motoUpdateMock,
+      delete: motoDeleteMock,
+    },
+    usuario: {
+      findUnique: usuarioFindUniqueMock,
+      create: usuarioCreateMock,
+    },
   },
 }));
 
 const { app } = await import('../app.js');
+const { criarToken } = await import('../services/authService.js');
 
-function request(server, method, path, body) {
+function hashSenha(senha, salt = '0123456789abcdef0123456789abcdef') {
+  return `scrypt$${salt}$${scryptSync(senha, salt, 64).toString('hex')}`;
+}
+
+function request(server, method, path, body, headers = {}) {
   const payload = body ? JSON.stringify(body) : null;
   const { port } = server.address();
 
@@ -25,6 +45,7 @@ function request(server, method, path, body) {
         headers: {
           ...(payload ? { 'Content-Type': 'application/json' } : {}),
           ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {}),
+          ...headers,
         },
       },
       (res) => {
@@ -59,14 +80,12 @@ describe('API de motos', () => {
   });
 
   beforeEach(() => {
-    executeMock.mockReset();
-  });
-
-  test('GET /api/health retorna status da API', async () => {
-    const response = await request(server, 'GET', '/api/health');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: 'ok' });
+    motoFindManyMock.mockReset();
+    motoCreateMock.mockReset();
+    motoUpdateMock.mockReset();
+    motoDeleteMock.mockReset();
+    usuarioFindUniqueMock.mockReset();
+    usuarioCreateMock.mockReset();
   });
 
   test('POST /api/login valida campos obrigatorios', async () => {
@@ -76,13 +95,16 @@ describe('API de motos', () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: 'E-mail e senha sao obrigatorios.' });
-    expect(executeMock).not.toHaveBeenCalled();
+    expect(usuarioFindUniqueMock).not.toHaveBeenCalled();
   });
 
   test('POST /api/login retorna usuario quando as credenciais existem', async () => {
-    executeMock.mockResolvedValueOnce([
-      [{ id: 1, nome: 'Administrador', email: 'admin@motoprime.com' }],
-    ]);
+    usuarioFindUniqueMock.mockResolvedValueOnce({
+      id: 1,
+      nome: 'Administrador',
+      email: 'admin@motoprime.com',
+      senha: hashSenha('123456'),
+    });
 
     const response = await request(server, 'POST', '/api/login', {
       email: 'admin@motoprime.com',
@@ -92,17 +114,22 @@ describe('API de motos', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       message: 'Login realizado!',
-      token: 'token',
+      token: expect.stringMatching(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/),
       usuario: { id: 1, nome: 'Administrador', email: 'admin@motoprime.com' },
     });
-    expect(executeMock).toHaveBeenCalledWith(
-      'SELECT id, nome, email FROM usuarios WHERE email = ? AND senha = ?',
-      ['admin@motoprime.com', '123456']
-    );
+    expect(usuarioFindUniqueMock).toHaveBeenCalledWith({
+      where: { email: 'admin@motoprime.com' },
+      select: { id: true, nome: true, email: true, senha: true },
+    });
   });
 
   test('POST /api/login retorna 401 para credenciais invalidas', async () => {
-    executeMock.mockResolvedValueOnce([[]]);
+    usuarioFindUniqueMock.mockResolvedValueOnce({
+      id: 1,
+      nome: 'Administrador',
+      email: 'admin@motoprime.com',
+      senha: hashSenha('123456'),
+    });
 
     const response = await request(server, 'POST', '/api/login', {
       email: 'erro@motoprime.com',
@@ -114,8 +141,12 @@ describe('API de motos', () => {
   });
 
   test('POST /api/usuarios cadastra usuario quando e-mail ainda nao existe', async () => {
-    executeMock.mockResolvedValueOnce([[]]);
-    executeMock.mockResolvedValueOnce([{ insertId: 5 }]);
+    usuarioFindUniqueMock.mockResolvedValueOnce(null);
+    usuarioCreateMock.mockResolvedValueOnce({
+      id: 5,
+      nome: 'Maria Cliente',
+      email: 'maria@motoprime.com',
+    });
 
     const response = await request(server, 'POST', '/api/usuarios', {
       nome: 'Maria Cliente',
@@ -132,18 +163,26 @@ describe('API de motos', () => {
         email: 'maria@motoprime.com',
       },
     });
-    expect(executeMock).toHaveBeenNthCalledWith(1, 'SELECT id FROM usuarios WHERE email = ?', [
-      'maria@motoprime.com',
-    ]);
-    expect(executeMock).toHaveBeenNthCalledWith(
-      2,
-      'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
-      ['Maria Cliente', 'maria@motoprime.com', '123456']
-    );
+    expect(usuarioFindUniqueMock).toHaveBeenCalledWith({
+      where: { email: 'maria@motoprime.com' },
+      select: { id: true, nome: true, email: true },
+    });
+    expect(usuarioCreateMock).toHaveBeenCalledWith({
+      data: {
+        nome: 'Maria Cliente',
+        email: 'maria@motoprime.com',
+        senha: expect.stringMatching(/^scrypt\$[a-f0-9]{32}\$[a-f0-9]{128}$/),
+      },
+      select: { id: true, nome: true, email: true },
+    });
   });
 
   test('POST /api/usuarios retorna 409 quando e-mail ja existe', async () => {
-    executeMock.mockResolvedValueOnce([[{ id: 1 }]]);
+    usuarioFindUniqueMock.mockResolvedValueOnce({
+      id: 1,
+      nome: 'Administrador',
+      email: 'admin@motoprime.com',
+    });
 
     const response = await request(server, 'POST', '/api/usuarios', {
       nome: 'Administrador',
@@ -153,7 +192,8 @@ describe('API de motos', () => {
 
     expect(response.status).toBe(409);
     expect(response.body).toEqual({ error: 'Este e-mail ja esta cadastrado.' });
-    expect(executeMock).toHaveBeenCalledTimes(1);
+    expect(usuarioFindUniqueMock).toHaveBeenCalledTimes(1);
+    expect(usuarioCreateMock).not.toHaveBeenCalled();
   });
 
   test('GET /api/motos lista todas as motos sem busca', async () => {
@@ -161,35 +201,70 @@ describe('API de motos', () => {
       { id: 1, marca: 'Honda', modelo: 'CB 500F' },
       { id: 2, marca: 'Yamaha', modelo: 'MT-03' },
     ];
-    executeMock.mockResolvedValueOnce([motos]);
+    motoFindManyMock.mockResolvedValueOnce(motos);
 
     const response = await request(server, 'GET', '/api/motos');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(motos);
-    expect(executeMock).toHaveBeenCalledWith('SELECT * FROM motos', []);
+    expect(motoFindManyMock).toHaveBeenCalledWith({ where: undefined });
   });
 
   test('GET /api/motos filtra por modelo ou marca', async () => {
     const motos = [{ id: 4, marca: 'Kawasaki', modelo: 'Ninja 400' }];
-    executeMock.mockResolvedValueOnce([motos]);
+    motoFindManyMock.mockResolvedValueOnce(motos);
 
     const response = await request(server, 'GET', '/api/motos?busca=ninja');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(motos);
-    expect(executeMock).toHaveBeenCalledWith(
-      'SELECT * FROM motos WHERE modelo LIKE ? OR marca LIKE ?',
-      ['%ninja%', '%ninja%']
-    );
+    expect(motoFindManyMock).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { modelo: { contains: 'ninja', mode: 'insensitive' } },
+          { marca: { contains: 'ninja', mode: 'insensitive' } },
+        ],
+      },
+    });
   });
 
   test('GET /api/motos retorna 500 quando o banco falha', async () => {
-    executeMock.mockRejectedValueOnce(new Error('database offline'));
+    motoFindManyMock.mockRejectedValueOnce(new Error('database offline'));
 
     const response = await request(server, 'GET', '/api/motos');
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({ error: 'Erro ao buscar motos' });
+  });
+
+  test('POST /api/motos exige autenticacao', async () => {
+    const response = await request(server, 'POST', '/api/motos', {});
+    expect(response.status).toBe(401);
+    expect(motoCreateMock).not.toHaveBeenCalled();
+  });
+
+  test('POST e PUT /api/motos persistem dados validos', async () => {
+    const dados = { marca: 'Honda', modelo: 'CG 160', categoria: 'Street', ano: 2025, cor: 'Preta', preco: 22000, quilometragem: 0, cilindradas: 160, imagem: '', descricao: '', destaque: false };
+    const salvo = { id: 10, ...dados, imagem: null, descricao: null };
+    const headers = { Authorization: `Bearer ${criarToken({ id: 1 })}` };
+    motoCreateMock.mockResolvedValueOnce(salvo);
+    motoUpdateMock.mockResolvedValueOnce({ ...salvo, cor: 'Vermelha' });
+
+    const cadastro = await request(server, 'POST', '/api/motos', dados, headers);
+    const alteracao = await request(server, 'PUT', '/api/motos/10', { ...dados, cor: 'Vermelha' }, headers);
+
+    expect(cadastro.status).toBe(201);
+    expect(alteracao.status).toBe(200);
+    expect(motoCreateMock).toHaveBeenCalledWith({ data: { ...dados, imagem: null, descricao: null } });
+    expect(motoUpdateMock).toHaveBeenCalledWith({ where: { id: 10 }, data: { ...dados, cor: 'Vermelha', imagem: null, descricao: null } });
+  });
+
+  test('DELETE /api/motos remove uma moto autenticada', async () => {
+    motoDeleteMock.mockResolvedValueOnce({ id: 10 });
+    const response = await request(server, 'DELETE', '/api/motos/10', null, {
+      Authorization: `Bearer ${criarToken({ id: 1 })}`,
+    });
+    expect(response.status).toBe(204);
+    expect(motoDeleteMock).toHaveBeenCalledWith({ where: { id: 10 } });
   });
 });

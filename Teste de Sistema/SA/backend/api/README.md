@@ -1,15 +1,34 @@
-# api
+# Moto Prime API
 
-To install dependencies:
+## Requisitos
+
+- Node.js 20+
+- PostgreSQL 16 disponível em `localhost:5432`
+
+## Execução
 
 ```bash
-bun install
+npm install
+npm run db:setup
+npm run dev
 ```
 
-To run:
+O `db:setup` aplica o schema Prisma e cria a conta de demonstração
+`admin@motoprime.com` com senha `123456`, além do estoque inicial.
+
+Em outro terminal, execute o frontend:
 
 ```bash
-bun run 
+cd ../../frontend
+npm install
+npm run dev
 ```
 
-This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## Verificação
+
+```bash
+npm test
+npx prisma validate
+```
+
+Defina `DATABASE_URL` e `AUTH_SECRET` no arquivo `.env`. Em produção, use um segredo longo e exclusivo.

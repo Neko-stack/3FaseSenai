@@ -1,8 +1,14 @@
 import { Login } from './Login.jsx';
 import { Heart, Plus, Search, ShoppingBag, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { buscarMotosDaApi } from './api.js';
-import { motos as motosLocais } from './motos.js';
+import {
+  atualizarMotoNaApi,
+  atualizarUsuarioNaApi,
+  buscarMotosDaApi,
+  cadastrarMotoNaApi,
+  excluirMotoNaApi,
+  sairDaApi,
+} from './api.js';
 
 const moeda = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -10,7 +16,8 @@ const moeda = new Intl.NumberFormat('pt-BR', {
 });
 
 const motoInicial = {
-  nome: '',
+  marca: '',
+  modelo: '',
   categoria: '',
   preco: '',
   ano: '',
@@ -19,6 +26,7 @@ const motoInicial = {
   cor: '',
   imagem: '',
   destaque: false,
+  descricao: '',
 };
 
 function lerStorage(chave, valorInicial) {
@@ -44,24 +52,26 @@ export function App() {
   const [nomeComprador, setNomeComprador] = useState('');
   const [pagamento, setPagamento] = useState('Pix');
   const [compraFinalizada, setCompraFinalizada] = useState(false);
-  const [usuario, setUsuario] = useState(() => lerStorage('usuario-motos', null));
-  const [catalogoBase, setCatalogoBase] = useState(motosLocais);
-  const [motosCadastradas, setMotosCadastradas] = useState(() =>
-    lerStorage('motos-cadastradas', [])
+  const [usuario, setUsuario] = useState(() =>
+    window.localStorage.getItem('token-motos') ? lerStorage('usuario-motos', null) : null
   );
+  const [catalogoBase, setCatalogoBase] = useState([]);
   const [novaMoto, setNovaMoto] = useState(motoInicial);
+  const [motoEmEdicao, setMotoEmEdicao] = useState(null);
+  const [erroApi, setErroApi] = useState('');
+  const [perfil, setPerfil] = useState(() => ({ nome: usuario?.nome || '', email: usuario?.email || '', telefone: usuario?.telefone || '' }));
 
   useEffect(() => {
     let ativo = true;
 
     buscarMotosDaApi()
       .then((motosDaApi) => {
-        if (ativo && motosDaApi.length > 0) {
-          setCatalogoBase(motosDaApi);
-        }
+        if (ativo) setCatalogoBase(motosDaApi);
+        setErroApi('');
       })
-      .catch(() => {
-        setCatalogoBase(motosLocais);
+      .catch((error) => {
+        setCatalogoBase([]);
+        setErroApi(error.message || 'Nao foi possivel carregar as motos.');
       });
 
     return () => {
@@ -69,10 +79,11 @@ export function App() {
     };
   }, []);
 
-  const catalogo = useMemo(
-    () => [...catalogoBase, ...motosCadastradas],
-    [catalogoBase, motosCadastradas]
-  );
+  useEffect(() => {
+    if (usuario) setPerfil({ nome: usuario.nome || '', email: usuario.email || '', telefone: usuario.telefone || '' });
+  }, [usuario]);
+
+  const catalogo = catalogoBase;
 
   const categorias = useMemo(
     () => ['Todas', ...new Set(catalogo.map((moto) => moto.categoria))],
@@ -88,6 +99,7 @@ export function App() {
   }, [busca, categoria, catalogo]);
 
   function fazerLogout() {
+    sairDaApi();
     window.localStorage.removeItem('usuario-motos');
     setUsuario(null);
   }
@@ -140,31 +152,67 @@ export function App() {
     setNovaMoto((motoAtual) => ({ ...motoAtual, [campo]: valor }));
   }
 
-  function cadastrarMoto(event) {
+  async function cadastrarMoto(event) {
     event.preventDefault();
-
-    const motoCadastrada = {
-      id: `local-${Date.now()}`,
-      nome: novaMoto.nome.trim(),
+    const dados = {
+      marca: novaMoto.marca.trim(),
+      modelo: novaMoto.modelo.trim(),
       categoria: novaMoto.categoria.trim(),
       preco: Number(novaMoto.preco),
       ano: Number(novaMoto.ano),
-      km: Number(novaMoto.km),
+      quilometragem: Number(novaMoto.km),
       cilindradas: Number(novaMoto.cilindradas),
       cor: novaMoto.cor.trim(),
       destaque: novaMoto.destaque,
-      imagem:
-        novaMoto.imagem.trim() ||
-        'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=900&q=80',
+      imagem: novaMoto.imagem.trim(),
+      descricao: novaMoto.descricao.trim(),
     };
-    const novasMotos = [...motosCadastradas, motoCadastrada];
+    try {
+      const motoSalva = motoEmEdicao
+        ? await atualizarMotoNaApi(motoEmEdicao, dados)
+        : await cadastrarMotoNaApi(dados);
+      setCatalogoBase((atual) => motoEmEdicao
+        ? atual.map((moto) => moto.id === motoSalva.id ? motoSalva : moto)
+        : [...atual, motoSalva]);
+      setNovaMoto(motoInicial);
+      setMotoEmEdicao(null);
+      setErroApi('');
+      setCategoria('Todas');
+      setBusca('');
+      setPagina('home');
+    } catch (error) {
+      setErroApi(error.message);
+    }
+  }
 
-    setMotosCadastradas(novasMotos);
-    salvarStorage('motos-cadastradas', novasMotos);
-    setNovaMoto(motoInicial);
-    setCategoria('Todas');
-    setBusca('');
-    setPagina('home');
+  function abrirEdicao(moto) {
+    setNovaMoto({ marca: moto.marca, modelo: moto.modelo, categoria: moto.categoria, preco: moto.preco, ano: moto.ano, km: moto.km, cilindradas: moto.cilindradas, cor: moto.cor, imagem: moto.imagem || '', destaque: moto.destaque, descricao: moto.descricao || '' });
+    setMotoEmEdicao(moto.id);
+    setErroApi('');
+    setPagina('nova-moto');
+  }
+
+  async function excluirMoto(moto) {
+    if (!window.confirm(`Excluir ${moto.nome}?`)) return;
+    try {
+      await excluirMotoNaApi(moto.id);
+      setCatalogoBase((atual) => atual.filter((item) => item.id !== moto.id));
+    } catch (error) {
+      setErroApi(error.message);
+    }
+  }
+
+  async function salvarPerfil(event) {
+    event.preventDefault();
+    try {
+      const atualizado = await atualizarUsuarioNaApi(perfil);
+      setUsuario(atualizado);
+      setPerfil(atualizado);
+      salvarStorage('usuario-motos', atualizado);
+      setErroApi('');
+    } catch (error) {
+      setErroApi(error.message);
+    }
   }
 
   return (
@@ -206,6 +254,7 @@ export function App() {
 
       {pagina === 'home' && (
         <>
+          {erroApi && <p className="form-error">{erroApi}</p>}
           <section className="hero" aria-labelledby="titulo-principal">
             <div className="hero__content">
               <p className="eyebrow">Concessionaria Moto Prime</p>
@@ -289,6 +338,8 @@ export function App() {
                     <strong>{moeda.format(moto.preco)}</strong>
 
                     <div className="actions">
+                      <button className="secondary-button" onClick={() => abrirEdicao(moto)} type="button">Editar</button>
+                      <button className="secondary-button" onClick={() => excluirMoto(moto)} type="button">Excluir</button>
                       <button
                         aria-pressed={favorito}
                         className="icon-button"
@@ -346,6 +397,14 @@ export function App() {
             </article>
           </div>
 
+          <form className="moto-form" onSubmit={salvarPerfil}>
+            <label>Nome<input required maxLength={100} value={perfil.nome} onChange={(e) => setPerfil({ ...perfil, nome: e.target.value })} /></label>
+            <label>E-mail<input required type="email" maxLength={100} value={perfil.email} onChange={(e) => setPerfil({ ...perfil, email: e.target.value })} /></label>
+            <label>Telefone<input maxLength={20} value={perfil.telefone || ''} onChange={(e) => setPerfil({ ...perfil, telefone: e.target.value })} /></label>
+            {erroApi && <p className="form-error">{erroApi}</p>}
+            <button className="buy-button" type="submit">Salvar dados</button>
+          </form>
+
           <section className="history" aria-labelledby="titulo-compras">
             <h2 id="titulo-compras">Compras realizadas</h2>
             {compras.length > 0 ? (
@@ -368,17 +427,26 @@ export function App() {
         <section className="page-panel" aria-labelledby="titulo-cadastro-moto">
           <div className="page-panel__header">
             <p className="eyebrow">Estoque</p>
-            <h1 id="titulo-cadastro-moto">Cadastrar novo card de moto</h1>
+            <h1 id="titulo-cadastro-moto">{motoEmEdicao ? 'Alterar moto' : 'Cadastrar nova moto'}</h1>
           </div>
 
           <form className="moto-form" onSubmit={cadastrarMoto}>
             <label>
-              Nome da moto
+              Marca
               <input
                 required
-                value={novaMoto.nome}
-                onChange={(event) => atualizarNovaMoto('nome', event.target.value)}
-                placeholder="Ex: Honda CG 160"
+                value={novaMoto.marca}
+                onChange={(event) => atualizarNovaMoto('marca', event.target.value)}
+                placeholder="Ex: Honda"
+              />
+            </label>
+            <label>
+              Modelo
+              <input
+                required
+                value={novaMoto.modelo}
+                onChange={(event) => atualizarNovaMoto('modelo', event.target.value)}
+                placeholder="Ex: CG 160"
               />
             </label>
             <label>
@@ -460,12 +528,19 @@ export function App() {
               Marcar como destaque
             </label>
 
+            <label>
+              Descricao
+              <input value={novaMoto.descricao} onChange={(event) => atualizarNovaMoto('descricao', event.target.value)} />
+            </label>
+
+            {erroApi && <p className="form-error">{erroApi}</p>}
+
             <div className="form-actions">
-              <button className="secondary-button" onClick={() => setPagina('home')} type="button">
+              <button className="secondary-button" onClick={() => { setNovaMoto(motoInicial); setMotoEmEdicao(null); setPagina('home'); }} type="button">
                 Cancelar
               </button>
               <button className="buy-button" type="submit">
-                Cadastrar moto
+                {motoEmEdicao ? 'Salvar alteracoes' : 'Cadastrar moto'}
               </button>
             </div>
           </form>
