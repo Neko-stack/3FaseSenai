@@ -14,9 +14,7 @@
     "undici-types": "^7.18.2"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/api.test.js test/sum.test.js",
-    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/api.integration.test.js --runInBand",
+    "test": "prisma db push --skip-generate && node prisma/seed.js && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "test:server": "npm run db:setup && node app.js",
     "dev": "node --watch app.js",
     "prisma:generate": "prisma generate",

@@ -5,6 +5,7 @@ import {
   atualizarMotoNaApi,
   atualizarUsuarioNaApi,
   buscarMotosDaApi,
+  buscarUsuariosDaApi,
   cadastrarMotoNaApi,
   excluirMotoNaApi,
   sairDaApi,
@@ -60,6 +61,9 @@ export function App() {
   const [motoEmEdicao, setMotoEmEdicao] = useState(null);
   const [erroApi, setErroApi] = useState('');
   const [perfil, setPerfil] = useState(() => ({ nome: usuario?.nome || '', email: usuario?.email || '', telefone: usuario?.telefone || '' }));
+  const [usuarios, setUsuarios] = useState([]);
+  const [buscaUsuario, setBuscaUsuario] = useState('');
+  const [erroUsuarios, setErroUsuarios] = useState('');
 
   useEffect(() => {
     let ativo = true;
@@ -89,6 +93,27 @@ export function App() {
     window.localStorage.removeItem('compras-motos');
     setCompras(lerStorage(`compras-motos-${usuario.id}`, []));
   }, [usuario]);
+
+  useEffect(() => {
+    if (!usuario || pagina !== 'usuario') return;
+    let ativo = true;
+
+    buscarUsuariosDaApi(buscaUsuario)
+      .then((resultado) => {
+        if (!ativo) return;
+        setUsuarios(resultado);
+        setErroUsuarios('');
+      })
+      .catch((error) => {
+        if (!ativo) return;
+        setUsuarios([]);
+        setErroUsuarios(error.message || 'Nao foi possivel consultar usuarios.');
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [buscaUsuario, pagina, usuario]);
 
   const catalogo = catalogoBase;
 
@@ -392,6 +417,34 @@ export function App() {
             {erroApi && <p className="form-error">{erroApi}</p>}
             <button className="buy-button" type="submit">Salvar dados</button>
           </form>
+
+          <section className="history" aria-labelledby="titulo-consulta-usuarios">
+            <div className="history__header">
+              <h2 id="titulo-consulta-usuarios">Consulta de usuarios</h2>
+              <label className="search user-search">
+                <Search size={18} aria-hidden="true" />
+                <span className="sr-only">Buscar usuario</span>
+                <input
+                  value={buscaUsuario}
+                  onChange={(event) => setBuscaUsuario(event.target.value)}
+                  placeholder="Buscar usuario"
+                />
+              </label>
+            </div>
+            {erroUsuarios && <p className="form-error">{erroUsuarios}</p>}
+            {usuarios.length > 0 ? (
+              <ul>
+                {usuarios.map((item) => (
+                  <li key={item.id}>
+                    <span>{item.nome}</span>
+                    <strong>{item.email}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nenhum usuario encontrado.</p>
+            )}
+          </section>
 
           <section className="history" aria-labelledby="titulo-minhas-motos">
             <h2 id="titulo-minhas-motos">Minhas motos cadastradas</h2>

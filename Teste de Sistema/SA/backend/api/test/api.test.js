@@ -1,270 +1,144 @@
-import { jest } from '@jest/globals';
-import { scryptSync } from 'crypto';
-import http from 'http';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { app } from '../app.js';
+import { prisma } from '../src/config/db.js';
 
-const motoFindManyMock = jest.fn();
-const motoCreateMock = jest.fn();
-const motoUpdateMock = jest.fn();
-const motoDeleteMock = jest.fn();
-const usuarioFindUniqueMock = jest.fn();
-const usuarioCreateMock = jest.fn();
+const SENHA = '123456';
+const ADMIN_EMAIL = 'admin@motoprime.com';
+const execucao = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const emailTeste = `backend.${execucao}@motoprime.com`;
+const modeloTeste = `BACKEND-${execucao}`;
 
-jest.unstable_mockModule('../db/db.js', () => ({
-  prisma: {
-    moto: {
-      findMany: motoFindManyMock,
-      create: motoCreateMock,
-      update: motoUpdateMock,
-      delete: motoDeleteMock,
+let server;
+let baseUrl;
+let tokenAdmin;
+
+async function request(method, path, body, headers = {}) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...headers,
     },
-    usuario: {
-      findUnique: usuarioFindUniqueMock,
-      create: usuarioCreateMock,
-    },
-  },
-}));
-
-const { app } = await import('../app.js');
-const { criarToken } = await import('../services/authService.js');
-
-function hashSenha(senha, salt = '0123456789abcdef0123456789abcdef') {
-  return `scrypt$${salt}$${scryptSync(senha, salt, 64).toString('hex')}`;
-}
-
-function request(server, method, path, body, headers = {}) {
-  const payload = body ? JSON.stringify(body) : null;
-  const { port } = server.address();
-
-  return new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        hostname: '127.0.0.1',
-        port,
-        path,
-        method,
-        headers: {
-          ...(payload ? { 'Content-Type': 'application/json' } : {}),
-          ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {}),
-          ...headers,
-        },
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        res.on('end', () => {
-          resolve({
-            status: res.statusCode,
-            body: data ? JSON.parse(data) : null,
-          });
-        });
-      }
-    );
-
-    req.on('error', reject);
-    if (payload) req.write(payload);
-    req.end();
+    body: body ? JSON.stringify(body) : undefined,
   });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  return {
+    status: response.status,
+    body: data,
+  };
 }
 
-describe('API de motos', () => {
-  let server;
-
-  beforeAll(() => {
+describe('API backend', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
     server = app.listen(0);
+    await new Promise((resolve) => server.once('listening', resolve));
+    const { port } = server.address();
+    baseUrl = `http://127.0.0.1:${port}/api`;
   });
 
-  afterAll((done) => {
-    server.close(done);
+  afterAll(async () => {
+    await prisma.moto.deleteMany({ where: { modelo: { startsWith: 'BACKEND-' } } });
+    await prisma.usuario.deleteMany({ where: { email: { startsWith: 'backend.' } } });
+    await new Promise((resolve) => server.close(resolve));
+    await prisma.$disconnect();
   });
 
-  beforeEach(() => {
-    motoFindManyMock.mockReset();
-    motoCreateMock.mockReset();
-    motoUpdateMock.mockReset();
-    motoDeleteMock.mockReset();
-    usuarioFindUniqueMock.mockReset();
-    usuarioCreateMock.mockReset();
-  });
-
-  test('POST /api/login valida campos obrigatorios', async () => {
-    const response = await request(server, 'POST', '/api/login', {
-      email: 'admin@motoprime.com',
-    });
-
-    expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: 'E-mail e senha sao obrigatorios.' });
-    expect(usuarioFindUniqueMock).not.toHaveBeenCalled();
-  });
-
-  test('POST /api/login retorna usuario quando as credenciais existem', async () => {
-    usuarioFindUniqueMock.mockResolvedValueOnce({
-      id: 1,
-      nome: 'Administrador',
-      email: 'admin@motoprime.com',
-      senha: hashSenha('123456'),
-    });
-
-    const response = await request(server, 'POST', '/api/login', {
-      email: 'admin@motoprime.com',
-      senha: '123456',
+  test('login retorna token para credenciais validas', async () => {
+    const response = await request('POST', '/login', {
+      email: ADMIN_EMAIL,
+      senha: SENHA,
     });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      message: 'Login realizado!',
-      token: expect.stringMatching(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/),
-      usuario: { id: 1, nome: 'Administrador', email: 'admin@motoprime.com' },
-    });
-    expect(usuarioFindUniqueMock).toHaveBeenCalledWith({
-      where: { email: 'admin@motoprime.com' },
-      select: { id: true, nome: true, email: true, senha: true },
-    });
+    expect(response.body.usuario.email).toBe(ADMIN_EMAIL);
+    expect(response.body.usuario.nome).toBe('Administrador');
+    expect(typeof response.body.token).toBe('string');
+
+    tokenAdmin = response.body.token;
   });
 
-  test('POST /api/login retorna 401 para credenciais invalidas', async () => {
-    usuarioFindUniqueMock.mockResolvedValueOnce({
-      id: 1,
-      nome: 'Administrador',
-      email: 'admin@motoprime.com',
-      senha: hashSenha('123456'),
-    });
-
-    const response = await request(server, 'POST', '/api/login', {
-      email: 'erro@motoprime.com',
-      senha: 'errada',
+  test('login rejeita senha incorreta', async () => {
+    const response = await request('POST', '/login', {
+      email: ADMIN_EMAIL,
+      senha: 'senha-errada',
     });
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'E-mail ou senha incorretos.' });
   });
 
-  test('POST /api/usuarios cadastra usuario quando e-mail ainda nao existe', async () => {
-    usuarioFindUniqueMock.mockResolvedValueOnce(null);
-    usuarioCreateMock.mockResolvedValueOnce({
-      id: 5,
-      nome: 'Maria Cliente',
-      email: 'maria@motoprime.com',
-    });
+  test('cadastra usuario, rejeita duplicado e consulta sem expor senha', async () => {
+    const dados = {
+      nome: 'Usuario Backend Teste',
+      email: emailTeste,
+      senha: SENHA,
+    };
 
-    const response = await request(server, 'POST', '/api/usuarios', {
-      nome: 'Maria Cliente',
-      email: 'maria@motoprime.com',
-      senha: '123456',
-    });
-
-    expect(response.status).toBe(201);
-    expect(response.body).toEqual({
-      message: 'Usuario cadastrado!',
-      usuario: {
-        id: 5,
-        nome: 'Maria Cliente',
-        email: 'maria@motoprime.com',
-      },
-    });
-    expect(usuarioFindUniqueMock).toHaveBeenCalledWith({
-      where: { email: 'maria@motoprime.com' },
-      select: { id: true, nome: true, email: true },
-    });
-    expect(usuarioCreateMock).toHaveBeenCalledWith({
-      data: {
-        nome: 'Maria Cliente',
-        email: 'maria@motoprime.com',
-        senha: expect.stringMatching(/^scrypt\$[a-f0-9]{32}\$[a-f0-9]{128}$/),
-      },
-      select: { id: true, nome: true, email: true },
-    });
-  });
-
-  test('POST /api/usuarios retorna 409 quando e-mail ja existe', async () => {
-    usuarioFindUniqueMock.mockResolvedValueOnce({
-      id: 1,
-      nome: 'Administrador',
-      email: 'admin@motoprime.com',
-    });
-
-    const response = await request(server, 'POST', '/api/usuarios', {
-      nome: 'Administrador',
-      email: 'admin@motoprime.com',
-      senha: '123456',
-    });
-
-    expect(response.status).toBe(409);
-    expect(response.body).toEqual({ error: 'Este e-mail ja esta cadastrado.' });
-    expect(usuarioFindUniqueMock).toHaveBeenCalledTimes(1);
-    expect(usuarioCreateMock).not.toHaveBeenCalled();
-  });
-
-  test('GET /api/motos lista todas as motos sem busca', async () => {
-    const motos = [
-      { id: 1, marca: 'Honda', modelo: 'CB 500F' },
-      { id: 2, marca: 'Yamaha', modelo: 'MT-03' },
-    ];
-    motoFindManyMock.mockResolvedValueOnce(motos);
-
-    const response = await request(server, 'GET', '/api/motos');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual(motos);
-    expect(motoFindManyMock).toHaveBeenCalledWith({ where: undefined });
-  });
-
-  test('GET /api/motos filtra por modelo ou marca', async () => {
-    const motos = [{ id: 4, marca: 'Kawasaki', modelo: 'Ninja 400' }];
-    motoFindManyMock.mockResolvedValueOnce(motos);
-
-    const response = await request(server, 'GET', '/api/motos?busca=ninja');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual(motos);
-    expect(motoFindManyMock).toHaveBeenCalledWith({
-      where: {
-        OR: [
-          { modelo: { contains: 'ninja', mode: 'insensitive' } },
-          { marca: { contains: 'ninja', mode: 'insensitive' } },
-        ],
-      },
-    });
-  });
-
-  test('GET /api/motos retorna 500 quando o banco falha', async () => {
-    motoFindManyMock.mockRejectedValueOnce(new Error('database offline'));
-
-    const response = await request(server, 'GET', '/api/motos');
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Erro ao buscar motos' });
-  });
-
-  test('POST /api/motos exige autenticacao', async () => {
-    const response = await request(server, 'POST', '/api/motos', {});
-    expect(response.status).toBe(401);
-    expect(motoCreateMock).not.toHaveBeenCalled();
-  });
-
-  test('POST e PUT /api/motos persistem dados validos', async () => {
-    const dados = { marca: 'Honda', modelo: 'CG 160', categoria: 'Street', ano: 2025, cor: 'Preta', preco: 22000, quilometragem: 0, cilindradas: 160, imagem: '', descricao: '', destaque: false };
-    const salvo = { id: 10, ...dados, imagem: null, descricao: null };
-    const headers = { Authorization: `Bearer ${criarToken({ id: 1 })}` };
-    motoCreateMock.mockResolvedValueOnce(salvo);
-    motoUpdateMock.mockResolvedValueOnce({ ...salvo, cor: 'Vermelha' });
-
-    const cadastro = await request(server, 'POST', '/api/motos', dados, headers);
-    const alteracao = await request(server, 'PUT', '/api/motos/10', { ...dados, cor: 'Vermelha' }, headers);
+    const cadastro = await request('POST', '/usuarios', dados);
+    const duplicado = await request('POST', '/usuarios', dados);
+    const consulta = await request('GET', `/usuarios?busca=${encodeURIComponent(emailTeste)}`);
 
     expect(cadastro.status).toBe(201);
-    expect(alteracao.status).toBe(200);
-    expect(motoCreateMock).toHaveBeenCalledWith({ data: { ...dados, imagem: null, descricao: null, criadorId: 1 } });
-    expect(motoUpdateMock).toHaveBeenCalledWith({ where: { id: 10, criadorId: 1 }, data: { ...dados, cor: 'Vermelha', imagem: null, descricao: null } });
+    expect(cadastro.body.usuario.email).toBe(emailTeste);
+    expect(duplicado.status).toBe(409);
+    expect(duplicado.body).toEqual({ error: 'Este e-mail ja esta cadastrado.' });
+    expect(consulta.status).toBe(200);
+    expect(consulta.body).toHaveLength(1);
+    expect(consulta.body[0].email).toBe(emailTeste);
+    expect(consulta.body[0]).not.toHaveProperty('senha');
   });
 
-  test('DELETE /api/motos remove uma moto autenticada', async () => {
-    motoDeleteMock.mockResolvedValueOnce({ id: 10 });
-    const response = await request(server, 'DELETE', '/api/motos/10', null, {
-      Authorization: `Bearer ${criarToken({ id: 1 })}`,
+  test('cadastro de usuario valida senha curta', async () => {
+    const response = await request('POST', '/usuarios', {
+      nome: 'Senha Curta',
+      email: `curta.${emailTeste}`,
+      senha: '123',
     });
-    expect(response.status).toBe(204);
-    expect(motoDeleteMock).toHaveBeenCalledWith({ where: { id: 10, criadorId: 1 } });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'A senha deve ter pelo menos 6 caracteres.' });
+  });
+
+  test('motos exigem autenticacao para cadastro', async () => {
+    const response = await request('POST', '/motos', {});
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: 'Autenticacao obrigatoria.' });
+  });
+
+  test('cadastra, consulta, altera e exclui moto autenticada', async () => {
+    const dadosMoto = {
+      marca: 'Suzuki',
+      modelo: modeloTeste,
+      categoria: 'Street',
+      ano: 2024,
+      cor: 'Preta',
+      preco: 45900,
+      quilometragem: 300,
+      cilindradas: 650,
+      imagem: '',
+      descricao: 'Teste backend',
+      destaque: false,
+    };
+    const auth = { Authorization: `Bearer ${tokenAdmin}` };
+
+    const cadastro = await request('POST', '/motos', dadosMoto, auth);
+    const consulta = await request('GET', `/motos?busca=${encodeURIComponent(modeloTeste)}`);
+    const alteracao = await request('PUT', `/motos/${cadastro.body.id}`, { ...dadosMoto, cor: 'Azul' }, auth);
+    const exclusao = await request('DELETE', `/motos/${cadastro.body.id}`, null, auth);
+    const consultaFinal = await request('GET', `/motos?busca=${encodeURIComponent(modeloTeste)}`);
+
+    expect(cadastro.status).toBe(201);
+    expect(cadastro.body.modelo).toBe(modeloTeste);
+    expect(consulta.status).toBe(200);
+    expect(consulta.body).toHaveLength(1);
+    expect(alteracao.status).toBe(200);
+    expect(alteracao.body.cor).toBe('Azul');
+    expect(exclusao.status).toBe(204);
+    expect(consultaFinal.body).toEqual([]);
   });
 });

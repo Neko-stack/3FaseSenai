@@ -8,8 +8,8 @@ Projeto de teste de sistema para gerenciamento de usuarios e estoque de motos.
 - Node.js e Express no backend
 - Prisma ORM
 - PostgreSQL
-- Playwright para testes de interface
-- Jest para testes da API
+- Jest para testes do backend
+- Playwright para testes de sistema
 
 ## Banco de dados
 
@@ -29,7 +29,7 @@ npm install
 npm run db:setup
 ```
 
-A carga inicial cria `admin@motoprime.com` com a senha `123456` para demonstracao.
+A carga inicial cria `admin@motoprime.com` com a senha `123456`, alem do estoque inicial.
 
 ## Execucao
 
@@ -48,16 +48,36 @@ npm install
 npm run dev
 ```
 
+## Arquitetura
+
+Backend em 4 camadas:
+
+- `routes`: endpoints HTTP.
+- `controllers`: entrada e saida HTTP.
+- `services`: regras de negocio.
+- `repositories`: acesso ao Prisma/PostgreSQL.
+
+Frontend em 4 camadas:
+
+- `App.jsx` e `Login.jsx`: telas/componentes.
+- `controllers`: orquestram chamadas da interface.
+- `services`: normalizam dados para a UI.
+- `repositories`: fazem acesso HTTP e token.
+
 ## Testes
 
-Os testes da API incluem uma suíte isolada e uma suíte integrada ao PostgreSQL real. Os testes de interface iniciam frontend e backend e acessam o mesmo banco, sem simulação das rotas HTTP.
+O backend possui testes de API com Jest, Express, Prisma e PostgreSQL reais.
 
 ```bash
 cd backend/api
 npm test
+```
 
-cd ../../frontend
+Os testes de sistema usam Playwright. A suite sobe backend, frontend e acessa o PostgreSQL real, sem simular as rotas HTTP. Tambem existem testes de API no Playwright para validar diretamente o backend.
+
+```bash
+cd frontend
 npm test
 ```
 
-O Playwright também gera o relatório `frontend/playwright-report/index.html`. O PostgreSQL deve estar ativo e o arquivo `backend/api/.env` deve estar configurado antes da execução.
+O Playwright gera o relatorio HTML em `frontend/playwright-report/index.html`. O PostgreSQL deve estar ativo e o arquivo `backend/api/.env` deve estar configurado antes da execucao.
