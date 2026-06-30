@@ -1,4 +1,4 @@
-import { PrismaClient } from "./generated/prisma/";
+import { PrismaClient } from "./generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const connectionString = `postgresql://postgres:senai@localhost:5432/clinic?schema=public`;

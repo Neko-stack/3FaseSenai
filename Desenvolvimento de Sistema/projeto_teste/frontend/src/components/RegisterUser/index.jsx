@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { toast } from 'react-toastify'
-import apiClient from '../../api/api'
+
 import axios from 'axios'
 
 const RegisterUser = () => {
@@ -42,11 +42,9 @@ const RegisterUser = () => {
         setIsSaving(true)
 
         try {
-           const response = await apiClient.post('/cadastro', {
-                email, 
-                senha: password
+            await axios.post('http://localhost:3000/users', {
+                email, password
             })
-            console.log("response", response)
 
             setIsSaving(false)
             resetForm()
@@ -55,7 +53,6 @@ const RegisterUser = () => {
                 hideProgressBar: true
             })
         } catch (error) {
-
             console.error('Erro ao criar usuário', error)
             toast.error('Erro ao criar o usuário!', {
                 autoClose: 2000,
@@ -63,7 +60,6 @@ const RegisterUser = () => {
             })
             setIsSaving(false)
         }
-    
 
 
     }

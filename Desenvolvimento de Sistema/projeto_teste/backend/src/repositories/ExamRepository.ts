@@ -1,4 +1,4 @@
-import type { Exame, PrismaClient, Token, } from "../prisma/generated/prisma/";
+import type { Exame, PrismaClient, Token, } from "../prisma/generated/prisma/client";
 import { prisma } from "../prisma/prisma";
 
 export class ExamRepository {
@@ -34,18 +34,13 @@ export class ExamRepository {
     }
 
     async criarExame(dadosExame: Partial<Exame>) {
-        if (!dadosExame.paciente_id) {if (!dadosExame.paciente_id) {
-        throw new Error("O campo 'paciente_id' é obrigatório para criar um exame.");
-  }
-  }
         return await this.prisma.exame.create({
             data: {
                 tipo_exame: dadosExame.tipo_exame || "",
                 valor: dadosExame.valor || "",
                 descricao: dadosExame.descricao || "",
                 data_exame: new Date(dadosExame.data_exame || ""),
-                resultado: dadosExame.resultado || "",
-                paciente_id: dadosExame.paciente_id
+                resultado: dadosExame.resultado || ""
             }
         })
     }
