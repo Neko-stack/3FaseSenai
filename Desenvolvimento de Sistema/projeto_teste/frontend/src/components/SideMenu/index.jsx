@@ -1,4 +1,6 @@
 import { Link, useNavigate, NavLink } from 'react-router'
+import { MdDarkMode, MdLightMode } from "react-icons/md"
+import { useTheme } from "../../contexts/ThemeContext"
 import {
     MdDashboard,
     MdExitToApp,
@@ -36,6 +38,9 @@ const SideMenu = () => {
     const toggleMenu = () => {
         setIsCollapsed(!isCollapsed)
     }
+
+    
+    const { darkMode, toggleTheme } = useTheme()
 
 
 
@@ -145,6 +150,16 @@ const SideMenu = () => {
                     </li>
                 </ul>
             </nav>
+            
+            <button
+                onClick={toggleTheme}
+                className="flex items-center gap-3 text-cyan-100 hover:text-cyan-300 w-full cursor-pointer mb-4"
+            >
+                {darkMode ? <MdLightMode size={20} /> : <MdDarkMode size={20} />}
+                {!isCollapsed && (
+                    <span>{darkMode ? "Modo Claro" : "Modo Escuro"}</span>
+                )}
+            </button>
 
             {/* botao sair */}
             <div className='p-4 border-t border-cyan-700'>

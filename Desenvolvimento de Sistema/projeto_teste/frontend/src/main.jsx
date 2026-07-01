@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-
 //react router
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
@@ -9,8 +8,8 @@ import { RouterProvider } from "react-router/dom";
 //toastify
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import Login from './pages/Login/loginPage';
+import Dashboard from './pages/Dashboard/dashboardPage';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -20,6 +19,8 @@ import ConsultationForm from './components/ConsultationForm';
 import ExamsForm from './components/ExamsForm';
 import PatientDetails from './components/PatientDetails';
 import ExamsList from './components/ExamsList';
+import { ThemeProvider } from "./contexts/ThemeContext"
+
 
 
 const router = createBrowserRouter([
@@ -49,9 +50,11 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <ThemeProvider>
     <AuthProvider>
       <ToastContainer />
       <RouterProvider router={router} />
     </AuthProvider>
+    </ThemeProvider>
   </StrictMode>,
 )
